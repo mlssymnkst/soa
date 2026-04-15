@@ -1,0 +1,126 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Quicksand", sans-serif !important;
+    font-weight: 600;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgb(255, 239, 244);
+}
+
+/* Login */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.login-box {
+    background-color: #D7677F;
+    border-radius: 40px;
+    box-shadow: 2px 2px 15px rgba(215, 103, 127, 0.4);
+    padding: 60px 35px 35px 35px; 
+    text-align: center;
+    width: 350px; 
+    position: relative; 
+}
+
+/* Logo */
+.logo {
+    width: 125px;
+    position: absolute;
+    top: -75px; 
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0 !important;
+}
+
+/* Formulário e Labels */
+form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+label {
+    color: #f3e3eb;
+    font-size: 1.1em;
+    text-align: left;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+/* Inputs de Texto e Senha */
+input[type="text"], 
+input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: #f3e3eb;
+    font-size: 1em;
+    color: #572446;
+}
+
+/* Container Senha + Olho */
+.password-container {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.password-container input {
+    padding-right: 45px; 
+}
+
+/* Botão do Olho */
+#toggleBtn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: auto !important;
+}
+
+#toggleBtn img {
+    width: 24px;
+    height: auto;
+    opacity: 0.7;
+}
+
+/* Botão Entrar */
+.btn-entrar {
+    background: #941749;
+    color: #f3e3eb;
+    padding: 12px 0;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-top: 30px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    width: 100%; 
+}
+
+.btn-entrar:hover {
+    background: #7a2b5a;
+    transform: scale(1.02);
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login L'amore</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="css_login.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="login-box">
+            <img src="logo.png" alt="Lamore" class="logo">
+
+            <form action="#">
+                <label for="login">Login</label>
+                <input type="text" id="login" name="login" placeholder="Digite o login" required>
+
+                <label for="senha">Senha</label>
+                <div class="password-container">
+                    <input type="password" id="senha" name="senha" placeholder="Digite a senha" required>
+                    <button type="button" id="toggleBtn" onclick="togglePassword()">
+                        <img src="eye.png" id="eyeIcon" alt="Ver senha">
+                    </button>
+                </div>
+
+                <button type="submit" class="btn-entrar">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+<!--JavaScript do botão do olho -->
+<!-- JavaScript for the eye button click -->>
+    <script>
+        function togglePassword() {
+            const senhaInput = document.getElementById('senha');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (senhaInput.type === 'password') {
+                senhaInput.type = 'text';
+                eyeIcon.src = 'eye.png'; 
+            } else {
+                senhaInput.type = 'password';
+                eyeIcon.src = 'eye.png';
+            }
+        }
+    </script>
+
+</body>
+</html>
