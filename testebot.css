@@ -1,0 +1,103 @@
+:root {
+    --bg-sidebar: #f0f4f9;
+    --hover-color: #e2e7ed;
+    --text-main: #1f1f1f;
+    --sidebar-width: 280px;
+    --sidebar-collapsed: 68px;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+}
+
+#check {
+    display: none; /* Esconde o checkbox */
+}
+
+/* --- Barra Lateral --- */
+.sidebar {
+    background-color: var(--bg-sidebar);
+    height: 100vh;
+    width: var(--sidebar-width);
+    position: fixed;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow: hidden;
+}
+
+/* Ajuste quando o menu está fechado */
+#check:checked ~ .sidebar {
+    width: var(--sidebar-collapsed);
+}
+
+#check:checked ~ .sidebar span, 
+#check:checked ~ .sidebar .label,
+#check:checked ~ .sidebar .new-chat {
+    display: none; /* Esconde o texto no modo colapsado */
+}
+
+/* --- Itens do Menu --- */
+.sidebar a, .new-chat {
+    text-decoration: none;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 25px;
+    margin-bottom: 5px;
+    transition: background 0.2s;
+}
+
+.sidebar i {
+    font-size: 20px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.sidebar a:hover {
+    background-color: var(--hover-color);
+}
+
+.new-chat {
+    background-color: var(--hover-color);
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+/* --- Histórico --- */
+.history-section {
+    margin-top: 20px;
+    flex-grow: 1;
+}
+
+.label {
+    font-size: 12px;
+    color: #5f6368;
+    padding-left: 15px;
+    text-transform: uppercase;
+}
+
+/* --- Área de Conteúdo --- */
+.content {
+    margin-left: var(--sidebar-width);
+    padding: 20px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+#check:checked ~ .content {
+    margin-left: var(--sidebar-collapsed);
+}
+
+.history-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
