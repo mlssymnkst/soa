@@ -15,7 +15,7 @@
 
     <div class="container">
         <div class="login-box">
-            <img src="logo.png" alt="Lamore" class="logo">
+            <img src="logo redondo.png" alt="Lamore" class="logo">
 
             <form action="#">
                 <label for="login">Login</label>
@@ -25,7 +25,7 @@
                 <div class="password-container">
                     <input type="password" id="senha" name="senha" placeholder="Digite a senha" required>
                     <button type="button" id="toggleBtn" onclick="togglePassword()">
-                        <img src="eye.png" id="eyeIcon" alt="Ver senha">
+                        <img src="closed.png" id="eyeIcon" alt="Ver senha">
                     </button>
                 </div>
 
@@ -34,19 +34,20 @@
         </div>
     </div>
 
-<!--JavaScript do botão do olho -->
-<!-- JavaScript for the eye button click -->>
     <script>
         function togglePassword() {
             const senhaInput = document.getElementById('senha');
             const eyeIcon = document.getElementById('eyeIcon');
 
+            // Se a senha estiver escondida, mostra a senha e troca para o olho aberto
             if (senhaInput.type === 'password') {
-                senhaInput.type = 'text';
-                eyeIcon.src = 'eye.png'; 
-            } else {
-                senhaInput.type = 'password';
-                eyeIcon.src = 'eye.png';
+                senhaInput.type = 'text'; 
+                eyeIcon.src = 'open.png'; 
+            } 
+            // Se a senha estiver visível, esconde e troca para o olho fechado
+            else {
+                senhaInput.type = 'password'; 
+                eyeIcon.src = 'closed.png'; 
             }
         }
     </script>
