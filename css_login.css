@@ -11,7 +11,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgb(255, 239, 244);
+    background: #f3e3eb;
 }
 
 /* Login */
@@ -23,9 +23,9 @@ body {
 }
 
 .login-box {
-    background-color: #D7677F;
+    background-color: #4a4b67;
     border-radius: 40px;
-    box-shadow: 2px 2px 15px rgba(215, 103, 127, 0.4);
+    box-shadow: 2px 2px 15px #31324a;
     padding: 60px 35px 35px 35px; 
     text-align: center;
     width: 350px; 
@@ -64,9 +64,9 @@ input[type="password"] {
     padding: 12px;
     border: none;
     border-radius: 8px;
-    background: #f3e3eb;
+    background: #e3e4f3;
     font-size: 1em;
-    color: #572446;
+    color: #4a4b67;
 }
 
 /* Container Senha + Olho */
@@ -107,8 +107,8 @@ input[type="password"] {
 
 /* Botão Entrar */
 .btn-entrar {
-    background: #941749;
-    color: #f3e3eb;
+    background: #f3b8b3;
+    color: #b63d5e;
     padding: 12px 0;
     border: none;
     border-radius: 12px;
@@ -121,6 +121,6 @@ input[type="password"] {
 }
 
 .btn-entrar:hover {
-    background: #7a2b5a;
+    background: #b63d5e;
     transform: scale(1.02);
 }
