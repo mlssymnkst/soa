@@ -8,7 +8,7 @@
 
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Quicksand', sans-serif !important;
     display: flex;
 }
 
@@ -100,4 +100,80 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 180px;
+}
+
+:root {
+    --bg-light: #F7F7F7;
+    --pink-card: #F2C2CC;
+    --yellow-btn: #F2E88B;
+    --border-color: #333;
+}
+
+.sidebar {
+    width: 300px;
+    background-color: white;
+    height: 100vh;
+    border-right: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    transition: width 0.3s ease;
+    overflow-x: hidden;
+}
+
+/* Quando fechado (check marcado) */
+#check:checked ~ .sidebar {
+    width: 80px;
+}
+
+#check:checked ~ .sidebar span, 
+#check:checked ~ .sidebar h3, 
+#check:checked ~ .sidebar .sidebar-footer {
+    display: none; /* Esconde textos e rodapé ao fechar */
+}
+
+/* Estilo dos Botões (Pills) */
+.btn-action {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border: 2px solid var(--border-color);
+    border-radius: 30px; /* Estilo arredondado da sua imagem */
+    background: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-yellow { background-color: var(--yellow-btn); }
+
+/* Estilo dos Cards de Histórico */
+.history-card {
+    background-color: var(--pink-card);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.badge {
+    background: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid #333;
+}
+
+/* Rodapé fixo embaixo */
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 0.75rem;
 }
