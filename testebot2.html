@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot L'amore - WeddingFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-pink: #E89BA8;
+            --bg-light: #F5F3EF;
+            --sidebar-gray: #E0E0E0;
+            --bot-bubble: #D9D9D9;
+            --user-bubble: #F5C6C6;
+            --text-dark: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Quicksand', sans-serif; }
+
+        body { display: flex; height: 100vh; background-color: var(--bg-light); overflow: hidden; }
+
+        /* --- BARRA LATERAL DE ÍCONES (MENU RETRAÍDO) --- */
+        .icon-bar {
+            width: 60px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            border-right: 1px solid #ddd;
+            z-index: 100;
+        }
+
+        .icon-btn {
+            font-size: 20px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: 0.3s;
+        }
+
+        .icon-btn:hover { color: var(--primary-pink); }
+
+        /* --- MENU LATERAL EXPANSÍVEL (HISTÓRICO) --- */
+        .sidebar-menu {
+            width: 320px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            display: none; /* Escondido por padrão */
+            flex-direction: column;
+            padding: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn { from { width: 0; opacity: 0; } to { width: 320px; opacity: 1; } }
+
+        .menu-header-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+
+        .btn-action {
+            background: #D9D9D9;
+            border: 2px solid #000;
+            padding: 10px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-action.active { background: #FCF595; } /* Cor do botão Chatbot ativo */
+
+        /* Histórico de Conversas */
+        .history-section { flex-grow: 1; overflow-y: auto; }
+        .history-card {
+            background: var(--user-bubble);
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+        }
+
+        .chat-name {
+            font-weight: 700;
+            border: none;
+            background: transparent;
+            width: 100%;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        .chat-meta { font-size: 12px; margin-top: 8px; display: flex; gap: 10px; }
+
+        /* Rodapé do Menu Lateral */
+        .sidebar-footer { border-top: 1px solid #ddd; padding-top: 15px; font-size: 14px; }
+
+        /* --- ÁREA PRINCIPAL DO CHAT --- */
+        .chat-container { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; }
+
+        .chat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        .chat-messages { flex-grow: 1; overflow-y: auto; padding-right: 10px; }
+
+        .message { margin-bottom: 20px; max-width: 70%; padding: 15px; border-radius: 15px; position: relative; }
+        
+        .bot-msg { background: var(--bot-bubble); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .user-msg { background: var(--user-bubble); align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
+
+        .input-area {
+            background: #E8EAE0;
+            padding: 15px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-area input { flex-grow: 1; border: none; background: transparent; outline: none; }
+
+        /* --- PAINEL DIREITO (PRÉVIA ORÇAMENTO) --- */
+        .preview-panel {
+            width: 300px;
+            background: var(--primary-pink);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .preview-card {
+            background: #D9D9D9;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 13px;
+            position: relative;
+        }
+
+        .status-tag { color: #28a745; font-weight: bold; text-align: center; margin-bottom: 5px; }
+        .item-info { line-height: 1.6; }
+        .btn-group { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
+        
+        .btn-view { background: #fff; border-radius: 10px; border: 1px solid #999; padding: 5px; cursor: pointer; }
+        .btn-del { background: transparent; border: 1px solid #999; border-radius: 10px; padding: 5px; cursor: pointer; }
+
+    </style>
+</head>
+<body>
+
+    <div class="icon-bar">
+        <div class="icon-btn" onclick="toggleMenu()"><i class="fas fa-bars"></i></div>
+        <div class="icon-btn"><i class="fas fa-edit"></i></div>
+        <div class="icon-btn"><i class="fas fa-shopping-cart"></i></div>
+        <div class="icon-btn"><i class="fas fa-robot"></i></div>
+    </div>
+
+    <div class="sidebar-menu" id="sideMenu">
+        <div class="menu-header-btns">
+            <div class="btn-action"><i class="fas fa-plus-square"></i> Iniciar Conversa</div>
+            <div class="btn-action"><i class="fas fa-box-open"></i> Produtos</div>
+            <div class="btn-action active"><i class="fas fa-robot"></i> Chatbot</div>
+        </div>
+
+        <h3 style="margin-bottom: 15px;"><i class="far fa-comment-dots"></i> Histórico de Conversas</h3>
+        
+        <div class="history-section">
+            <div class="history-card">
+                <input type="text" class="chat-name" value="Conversa 1">
+                <p style="font-size: 11px; color: #555;">Olá 👋 Sou seu assistente...</p>
+                <div class="chat-meta">
+                    <span style="background:#fff; padding: 2px 8px; border-radius: 5px;">2 Msgs</span>
+                    <span><i class="far fa-clock"></i> Agora</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>Total de conversas: <span id="totalChats">1</span></p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <span>Conversa ativa:</span>
+                <span style="background:#fff; border:1px solid #000; padding: 2px 15px; border-radius: 5px;" id="activeStatus">Sim</span>
+            </div>
+        </div>
+    </div>
+
+    <main class="chat-container">
+        <header class="chat-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="https://via.placeholder.com/40" style="border-radius:50%"> <h2>Chatbot L´amore</h2>
+            </div>
+            <div style="font-size: 20px; display:flex; gap:20px;">
+                <i class="fas fa-search"></i>
+                <i class="fas fa-bell"></i>
+                <i class="fas fa-user-circle"></i>
+            </div>
+        </header>
+
+        <div class="chat-messages">
+            <div class="message bot-msg">
+                <p>Olá👋 Sou o Assistente Virtual da Lamore!<br><br>
+                Estou aqui para ajudar você a gerenciar nossos produtos de casamento!<br><br>
+                💡Comandos disponíveis:<br>
+                • "buscar {nome}" - procurar produtos<br>
+                • "estoque{codigo}" - ver estoque</p>
+                <span style="font-size: 10px; display:block; margin-top:5px;">09:10</span>
+            </div>
+
+            <div class="message user-msg">
+                <p>Pedido novo</p>
+                <span style="font-size: 10px; display:block; margin-top:5px;">09:10</span>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" placeholder="Digite um comando... Ex: 'criar um pedido'">
+            <button style="background:none; border:none; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </header>
+
+    <aside class="preview-panel">
+        <h4 style="color:white; text-align:center;">Prévia do Orçamento</h4>
+        
+        <div class="preview-card">
+            <div class="status-tag">Concluído</div>
+            <div class="item-info">
+                Pedido 1 Criado<br>
+                Convite no Papel A4 ✅<br>
+                Cor Esmeralda ✅<br>
+                Quantidade: 500 ✅
+            </div>
+            <div class="btn-group">
+                <button class="btn-view">Clique para Ver</button>
+                <button class="btn-del">Excluir</button>
+            </div>
+            <p style="font-size:9px; margin-top:5px; text-align:center;">Código conv-001</p>
+        </div>
+
+        <div class="preview-card" style="opacity: 0.8;">
+            <div class="status-tag" style="color:red;">EXCLUÍDO</div>
+            <div class="item-info">
+                Pedido 2 Excluído<br>
+                Convite no Papel A4 ❌<br>
+                Quantidade: 1000 ❌
+            </div>
+            <p style="font-size:9px; margin-top:5px; text-align:center;">Código conv-001</p>
+        </div>
+    </aside>
+
+    <script>
+        // Função para abrir/fechar o menu lateral
+        function toggleMenu() {
+            const menu = document.getElementById('sideMenu');
+            const isVisible = menu.style.display === 'flex';
+            menu.style.display = isVisible ? 'none' : 'flex';
+        }
+
+        // Lógica simples para alternar o status de "Conversa Ativa"
+        document.getElementById('activeStatus').addEventListener('click', function() {
+            this.innerText = this.innerText === 'Sim' ? 'Não' : 'Sim';
+        });
+
+        // Os nomes das conversas já são editáveis devido ao uso de <input> no histórico
+    </script>
+</body>
+</html>
