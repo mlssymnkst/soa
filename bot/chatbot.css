@@ -208,38 +208,47 @@ ICON SIDEBAR (barra de ícones fixa)
   padding: 0;
   margin-bottom: -2px;
   line-height: 1px;
+  align-items: baseline;
+  align-self: left;
 }
 
 .conv-header {
     width: 100%;
     display: flex;
-    align-items: center;
+    align-items: left;
     justify-content: space-between;
+    text-align: left;
+    text-overflow: ellipsis;
 }
 
 .conv-meta {
   display: flex;
-  gap: 8px;
-  align-items: center;
+  gap: 6px;
+  align-items: baseline !important;
   margin-top: -3.2px;
   flex-wrap: wrap;
+  text-align: left !important;
 }
 
 .conv-badge {
   font-size: 10px;
-  background: var(--pink-100);
-  color: var(--pink-lamore2);
+  background: var(--pink-400);
+  color: var(--pink-50);
   border-radius: 6px;
   padding: 2px 7px;
   font-weight: 500;
+  text-align: left;
+  margin-left: 0;
 }
 
 .conv-date {
   font-size: 10px;
   color: var(--gray-800);
   display: flex;
-  align-items: center;
+  align-items: left;
   gap: 3px;
+  text-align: left;
+  margin-left: 0;
 }
 
 /* Rodapé do menu */
@@ -773,7 +782,7 @@ ICON SIDEBAR (barra de ícones fixa)
   height: 22px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 2px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -782,6 +791,7 @@ ICON SIDEBAR (barra de ícones fixa)
   opacity: 0;
   transition: opacity 0.15s, background 0.15s, color 0.15s;
   padding: 0;
+  align-self: right;
 }
 .conv-card:hover .conv-delete-btn { opacity: 1; }
 .conv-delete-btn:hover { background: var(--red-50); color: var(--red-600); }

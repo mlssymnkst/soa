@@ -258,7 +258,7 @@ function renderConvList() {
       </div>
 
       <div class="conv-meta">
-        <span class="conv-badge">${conv.msgCount} Msg${conv.msgCount !== 1 ? 's' : ''}</span>
+        <span class="conv-badge">${conv.msgCount} Msg ${conv.msgCount !== 1 ? 's' : ''}</span>
         <span class="conv-date">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
@@ -333,7 +333,6 @@ function renderMessages() {
     const row = document.createElement('div');
     row.className = 'msg-row ' + msg.type;
 
-    // Escapa HTML e preserva quebras de linha
     const safe = msg.text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
