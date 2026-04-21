@@ -34,7 +34,41 @@ function dateStr(timestamp) {
   return new Date(timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
+ /********************************Listando Insumos*******************************************/
+async function buscarInsumos(){
+    try {
+    const response = await fetch("http://127.0.0.1:5000/insumos");
 
+    if (!response.ok) {
+      throw new Error("Erro ao buscar insumos");
+    }
+
+    const insumos = await response.json();
+
+    if (!insumos.length) {
+      return "Nenhum insumo cadastrado.";
+    }
+
+    let resposta = "📦 Insumos disponíveis:\n\n";
+
+    insumos.forEach(i => {
+      resposta += 
+        `• ${i.categoria}\n` +
+        `   💰 R$ ${i.preco_unitario}\n` +
+        `   📦 Estoque: ${i.estoque_disponivel}\n\n`;
+    });
+
+    return resposta;
+
+  } catch (error) {
+    return "Erro ao conectar com o servidor.";
+  }
+}
+
+
+
+
+/***********************************************************************************************/
 /* ════════════════════════════════════════════════
    MENU LATERAL (SIDEBAR)
 ════════════════════════════════════════════════ */
@@ -387,9 +421,8 @@ const BOT_RESPONSES = {
       : 'Seu orçamento está vazio. Use "pedido novo" para adicionar itens.',
 
   /* FUNÇÃO VER PRODUTOS */
-  'ver produtos': () => {
-    addQuoteItem('Convite Floral', 'Papel A4', 'Rosa Nude', 100, 'conv-' + (state.quoteCounter + 1));
-    return 'Aqui estão alguns produtos! Adicionei um exemplo ao seu orçamento.';
+  'ver produtos': async () => {
+    return await buscarInsumos();
   },
 
   'produtos': () => {
@@ -416,9 +449,14 @@ const BOT_RESPONSES = {
   },
 };
 
-function getBotReply(input) {
+async function getBotReply(input) {
   const key = input.toLowerCase().trim();
-  return BOT_RESPONSES[key] ? BOT_RESPONSES[key]() : BOT_RESPONSES['default'](key);
+
+  if (BOT_RESPONSES[key]) {
+    return await BOT_RESPONSES[key]();
+  }
+
+  return await BOT_RESPONSES['default'](key);
 }
 
 /** Envia a mensagem do usuário e aciona a resposta do bot */
@@ -432,9 +470,11 @@ function sendMessage() {
   input.value = '';
   addUserMessage(text);
 
-  setTimeout(() => addBotMessage(getBotReply(text)), 600);
+setTimeout(async () => {
+  const resposta = await getBotReply(text);
+  addBotMessage(resposta);
+  }, 600);
 }
-
 
 /* ════════════════════════════════════════════════
    PAINEL DE ORÇAMENTO
@@ -529,3 +569,4 @@ function renderQuotePanel() {
 document.addEventListener('DOMContentLoaded', () => {
   newConversation();
 });
+

@@ -1,6 +1,6 @@
 from pymongo import MongoClient 
 
-client = MongoClient("b://localhost:27017/projetoIntegrador")
+client = MongoClient("mongodb://localhost:27017/projetoIntegrador")
 db = client["SOA"]
 
 clientes_collection = db["clientes"]
