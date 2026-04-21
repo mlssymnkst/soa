@@ -509,11 +509,13 @@ ICON SIDEBAR (barra de ícones fixa)
 }
 
 .msg-row.user { 
-  justify-content: flex-end; 
+  max-width: 100%;;
 }
 
 .msg-bubble {
-  max-width: 80%; 
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%; 
   min-width: 500px; 
   border-radius: 16px;
   padding: 12px 16px;
@@ -534,7 +536,9 @@ ICON SIDEBAR (barra de ícones fixa)
   background: var(--pink-100);
   color: var(--pink-800);
   border-bottom-right-radius: 4px;
-  width: 80%;
+  width: fit-content;
+  max-width: 58%;
+  margin-left: auto;
 }
 
 .msg-bubble p, .msg-bubble span {
@@ -552,15 +556,18 @@ ICON SIDEBAR (barra de ícones fixa)
 
 
 .msg-avatar {
-  width: 35px;
-  height: 35px;
+  width: 35px !important;
+  height: 35px !important;
   border-radius: 0%;
   flex-shrink: 0;
   overflow: hidden; 
   display: flex;
   align-items: center;
+  align-self: flex-start;
   justify-content: center;
   background: transparent; 
+  font-size: 14px;
+  object-fit: cover;
 }
 
 
@@ -860,11 +867,4 @@ ICON SIDEBAR (barra de ícones fixa)
 }
 .finish-conv-btn.reopen:hover { background: var(--pink-100); }
 
-/* ── BALÕES DE MENSAGEM (fix overflow) ── */
-.msg-bubble {
-  max-width: 58%;
-  width: fit-content;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  white-space: normal;
-}
+

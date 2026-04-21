@@ -333,37 +333,30 @@ function renderMessages() {
     const row = document.createElement('div');
     row.className = 'msg-row ' + msg.type;
 
-    const lines = msg.text
-      .split('\n')
-      .map(l => `<span>${l}</span>`)
-      .join('<br>');
+    // Escapa HTML e preserva quebras de linha
+    const safe = msg.text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
 
     if (msg.type === 'bot') {
-      row.innerHTML = `
-        <div class="msg-avatar">
-          <img src="../images/french-bulldog.png" alt="L'amore Bot" class="avatar-img" onerror="this.style.display='none'">
-           </div>
-        <div>
-          <div class="msg-bubble bot">
-            ${lines}
-            <div class="msg-time">${msg.time}</div>
-          </div>
-        </div>`;
-    } else {
-      row.innerHTML = `
-        <div>
-          <div class="msg-bubble user">
-            ${lines}
-            <div class="msg-time">${msg.time}</div>
-          </div>
-        </div>`;
-    }
+    row.innerHTML = `
+    <img src="../images/french-bulldog.png" alt="L'amore Bot" class="msg-avatar" onerror="this.style.display='none'">
+    <div>
+      <div class="msg-bubble bot">${safe}<div class="msg-time">${msg.time}</div></div>
+    </div>`;
+
+} else {
+  row.innerHTML = `
+    <div class="msg-bubble user">${safe}<div class="msg-time">${msg.time}</div></div>`;
+}
 
     container.appendChild(row);
   });
 
   container.scrollTop = container.scrollHeight;
 }
+
 
 /** Preenche o campo de texto com um atalho rápido */
 function insertShortcut(cmd) {
