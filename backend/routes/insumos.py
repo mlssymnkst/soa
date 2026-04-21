@@ -4,6 +4,7 @@ from bson import ObjectId
 
 insumos_bp = Blueprint("insumos", __name__)
 
+#Insumos da empresa
 @insumos_bp.route("/insumos", methods=["POST"])
 def criar_isumo():
     data = request.json
@@ -16,7 +17,7 @@ def criar_isumo():
     insumo = {
         'categoria': data['categoria'],
         'preco_unitario': data['preco_unitario'],
-        'estoque_disponivel': data.get('estoque_disponivel', 0),
+        'estoque_disponivel': 0,
         'unidade_medida': data.get('unidade_medida', 'unidade')
     }
 
@@ -27,9 +28,88 @@ def criar_isumo():
         'id': str(result.inserted_id)
     })
 
+#Ler todos os insumos da empresa
 @insumos_bp.route('/insumos', methods=['GET '])
 def listar_insumos():
     insumos =[]
 
     for insumo in insumos_collection.fin():
+        insumo["_id"] = str(insumo["_id"])
+        insumos.append(insumo)
+
+    return jsonify(insumos)
+#----------------------------------------------------#
+
+#Vai trazer um insumo por ID
+@insumos_bp.route("/insumos/<id>", methods=["GET"])
+def buscar_insumo(id):
+    try:
+        insumo = insumos_collection.find_one({
+            "_id": ObjectId(id)
+        })
+    except:
+        return jsonify({
+            "erro": "ID inválido"
+        }), 400
+    
+    if not insumo:
+        return jsonify({
+            "erro": "Insumo não encontrado"
+        }), 404
+    
+    insumo["_id"] = str(insumo["_id"])
+    return jsonify(insumo)
+#----------------------------------------------------#
+
+
+# Atualiza os dados dos insumos
+@insumos_bp.route("/insumos/<id>", methods=["PUT"])
+def atualizar_insumos(id):
+    data = request.json
+
+    if "estoque_disponivel" in data:
+        return jsonify({
+            "erro": "Estoque não pode ser alterado por aqui"
+        }),
+
+    try:
+        result = insumos_collection.update.one(
+            {"_id": ObjectId(id)},
+            {"$set": data}
+        )
+
+    except:
+        return jsonify({
+            "erro": "ID iválido"
+        }), 400
+    
+    if result.matched_count == 0:
+        return jsonify({
+            "erro": "Insumo não encontrado"
+        }), 404
        
+    return jsonify({
+        "msg": "Insumo atualizado com sucesso"
+    })
+#----------------------------------------------------#
+
+#Deletando
+@insumos_bp.route("/insumos/<id>", methods=["DELETE"])
+def deletar_insumo(id):
+    try:
+        result = insumos_collection.delete.one({
+            "_id": ObjectId(id)
+        })
+    except:
+        return jsonify({
+            "erro": "Insumo não encontrado"
+        }), 404
+    
+    if result.deleted_count == 0:
+        return jsonify({
+            "erro": "Insumo não encontrado"
+        }), 404
+    
+    return jsonify({
+        "msg": "Insumo deletado com sucesso"
+    })
