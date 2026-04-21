@@ -256,7 +256,7 @@ function renderConvList() {
           </svg>
         </button>
       </div>
-      
+
       <div class="conv-meta">
         <span class="conv-badge">${conv.msgCount} Msg${conv.msgCount !== 1 ? 's' : ''}</span>
         <span class="conv-date">
@@ -341,7 +341,7 @@ function renderMessages() {
     if (msg.type === 'bot') {
       row.innerHTML = `
         <div class="msg-avatar">
-          <img src="french-bulldog.png" alt="L'amore Bot" class="avatar-img" onerror="this.style.display='none'">
+          <img src="../images/french-bulldog.png" alt="L'amore Bot" class="avatar-img" onerror="this.style.display='none'">
            </div>
         <div>
           <div class="msg-bubble bot">
