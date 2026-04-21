@@ -159,9 +159,10 @@ ICON SIDEBAR (barra de ícones fixa)
 
 /* Lista de conversas */
 .conversation-list {
-  display: flex;
+  display: block;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 2px;
   flex: 1;
 }
 
@@ -173,7 +174,8 @@ ICON SIDEBAR (barra de ícones fixa)
   border: 0.5px solid transparent;
   transition: border-color 0.15s;
   display: flex !important;
-  align-items: center !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
   gap: 6px !important;
 }
 .conv-card:hover { 
@@ -204,13 +206,22 @@ ICON SIDEBAR (barra de ícones fixa)
   outline: none;
   width: 100%;
   padding: 0;
+  margin-bottom: -2px;
+  line-height: 1px;
+}
+
+.conv-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .conv-meta {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-top: 4px;
+  margin-top: -3.2px;
   flex-wrap: wrap;
 }
 
