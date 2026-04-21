@@ -4,7 +4,7 @@
     <meta charset="UTF-3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login L'amore</title>
-    <link rel="icon" type="image/png" href="logo redondo.png">
+    <link rel="icon" type="image/png" href="../images/logo redondo.png">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,7 +17,7 @@
 
     <div class="container">
         <div class="login-box">
-            <img src="logo redondo.png" alt="Lamore" class="logo">
+            <img src="../images/logo redondo.png" alt="Lamore" class="logo">
 
             <form action="#">
                 <label for="login">Login</label>
@@ -27,7 +27,7 @@
                 <div class="password-container">
                     <input type="password" id="senha" name="senha" placeholder="Digite a senha" required>
                     <button type="button" id="toggleBtn" onclick="togglePassword()">
-                        <img src="closed.png" id="eyeIcon" alt="Ver senha">
+                        <img src="../images/closed.png" id="eyeIcon" alt="Ver senha">
                     </button>
                 </div>
 
@@ -44,12 +44,12 @@
             // Se a senha estiver escondida, mostra a senha e troca para o olho aberto
             if (senhaInput.type === 'password') {
                 senhaInput.type = 'text'; 
-                eyeIcon.src = 'open.png'; 
+                eyeIcon.src = '../images/open.png'; 
             } 
             // Se a senha estiver visível, esconde e troca para o olho fechado
             else {
                 senhaInput.type = 'password'; 
-                eyeIcon.src = 'closed.png'; 
+                eyeIcon.src = '../images/closed.png'; 
             }
         }
     </script>

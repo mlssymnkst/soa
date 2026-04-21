@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot L'amore</title>
+
+    <link rel="icon" type="image/png" href="../images/french-bulldog.png">
+    
+    <!-- Links Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+
+    <!-- Links icones-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <link rel="stylesheet" href="chatbot.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════
+  BARRA DE ÍCONES (fixa)
+  ════════════════════════════════════════ -->
+  <div class="icon-sidebar">
+
+    <!-- Menu / Histórico -->
+    <button class="icon-btn" data-tooltip="Histórico de Conversas" onclick="toggleMenu()">
+      <span class="material-icons">menu</span>
+    </button>
+
+    <!-- Nova Conversa -->
+    <button class="icon-btn" data-tooltip="Nova Conversa">
+      <span class="material-icons">edit_square</span>
+    </button>
+
+    <!-- Produtos -->
+    <button class="icon-btn" data-tooltip="Insumos">
+      <span class="material-icons">inventory_2</span>
+    </button>
+
+    <!-- Chatbot (ativo) -->
+    <button class="icon-btn" data-tooltip="Chatbot">
+      <span class="material-icons">reviews</span>
+    </button>
+
+  </div><!-- /icon-sidebar -->
+
+
+ <!-- ════════════════════════════════════════
+OVERLAY (fecha menu ao clicar fora)
+ ════════════════════════════════════════ -->
+ <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+
+  <!-- ════════════════════════════════════════
+       MENU LATERAL (slide-in)
+  ════════════════════════════════════════ -->
+  <div class="menu-sidebar" id="menuSidebar">
+    <div class="menu-sidebar-inner">
+
+      <!-- Botão Nova Conversa -->
+      <button class="new-conv-btn" onclick="newConversation()">
+        <span class="material-icons">add</span>
+        Nova Conversa
+      </button>
+
+      <!-- Título da seção -->
+      <div class="sidebar-section-title">
+        <span class="material-icons">mode_comment</span>
+        Histórico de Conversas
+      </div>
+
+      <!-- Lista de conversas (preenchida via JS) -->
+      <div class="conversation-list" id="convList"></div>
+
+      <!-- Rodapé com contadores -->
+      <div class="sidebar-footer">
+        <div class="footer-row">
+          <span>Total de conversas:</span>
+          <span id="totalConvs" style="font-weight:500">0</span>
+        </div>
+        <div class="footer-row">
+          <span>Conversa ativa:</span>
+          <button class="status-toggle" id="activeToggle" onclick="toggleActive()">—</button>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /menu-sidebar -->
+
+
+  <!-- ════════════════════════════════════════
+ ÁREA PRINCIPAL
+  ════════════════════════════════════════ -->
+  <div class="main" id="mainArea">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-logo">
+          <img src="../images/logo redondo.png" alt="Logo L'amore" class="topbar-logo-img" />
+        </div>
+        <div class="brand-name">Chatbot L'amore</div>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="topbar-icon-btn" title="Buscar">
+          <span class="material-icons">search</span>
+        </button>
+        
+        <button class="topbar-icon-btn" title="Notificações">
+          <span class="material-icons">notifications</span>
+        </button>
+
+        <button class="topbar-icon-btn" title="Conta">
+          <span class="material-icons">person</span>
+        </button>
+      </div>
+    </div><!-- /topbar -->
+
+    <!-- Atalhos Rápidos -->
+    <div class="shortcuts">
+      <span class="shortcut-label">Atalhos Rápidos:</span>
+
+      <button class="shortcut-btn" onclick="insertShortcut('ver produtos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3"  y="3"  width="7" height="7"/>
+          <rect x="14" y="3"  width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+          <rect x="3"  y="14" width="7" height="7"/>
+        </svg>
+        Ver produtos
+      </button>
+
+      <button class="shortcut-btn" onclick="insertShortcut('resumo')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="18" y1="20" x2="18" y2="10"/>
+          <line x1="12" y1="20" x2="12" y2="4"/>
+          <line x1="6"  y1="20" x2="6"  y2="14"/>
+        </svg>
+        Resumo
+      </button>
+
+      <button class="shortcut-btn" onclick="insertShortcut('produtos')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <line x1="8"    y1="6"  x2="21"   y2="6"/>
+          <line x1="8"    y1="12" x2="21"   y2="12"/>
+          <line x1="8"    y1="18" x2="21"   y2="18"/>
+          <line x1="3"    y1="6"  x2="3.01" y2="6"/>
+          <line x1="3"    y1="12" x2="3.01" y2="12"/>
+          <line x1="3"    y1="18" x2="3.01" y2="18"/>
+        </svg>
+        Produtos
+      </button>
+
+      <button class="shortcut-btn" onclick="insertShortcut('ajuda')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/>
+          <line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Ajuda
+      </button>
+    </div><!-- /shortcuts -->
+
+
+    <!-- Chat + Painel direito -->
+    <div class="chat-area">
+
+      <!-- Coluna de mensagens -->
+      <div class="chat-column">
+
+        <!-- Mensagens (preenchidas via JS) -->
+        <div class="messages-wrap" id="messages"></div>
+
+        <!-- Campo de entrada -->
+        <div class="input-area">
+          <div class="input-row">
+            <input
+              class="chat-input"
+              id="chatInput"
+              type="text"
+              placeholder='Digite um comando... Ex: "Pedido Novo"'
+              onkeydown="if(event.key==='Enter') sendMessage()">
+            <button class="send-btn" onclick="sendMessage()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="22" y1="2"  x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+          <div class="input-footer-row">
+            <div class="input-hint">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#D4537E" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8"  x2="12"    y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              Digite "ajuda" para ver todos os comandos disponíveis
+            </div>
+            <button class="finish-conv-btn" id="finishConvBtn" onclick="toggleActive()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span id="finishConvLabel">Finalizar conversa</span>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /chat-column -->
+
+
+      <!-- Painel direito — Prévia do Orçamento -->
+      <div class="right-panel">
+        <div class="panel-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Prévia do Orçamento
+        </div>
+
+        <!-- Cards de orçamento (preenchidos via JS) -->
+        <div class="panel-items" id="quoteItems">
+          <div style="text-align:center; color:var(--gray-400); font-size:12px; margin-top:24px; line-height:1.8;">
+            Nenhum item ainda.<br>Use o chat para adicionar produtos ao orçamento.
+          </div>
+        </div>
+      </div><!-- /right-panel -->
+
+    </div><!-- /chat-area -->
+
+  </div><!-- /main -->
+
+
+  <!-- Script (carregado no final para garantir que o DOM esteja pronto) -->
+  <script src="chatbot.js"></script>
+
+</body>
+</html>
