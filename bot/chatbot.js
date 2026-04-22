@@ -34,7 +34,12 @@ function dateStr(timestamp) {
   return new Date(timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
- /********************************Listando Insumos*******************************************/
+  /* ******************************************************************************* */
+ /* *************************** async que irão retornar os valores do banco ********************************* */
+  /* ******************************************************************************* */
+
+////////////////// insumos ///////////////////////////////////
+
 async function buscarInsumos(){
     try {
     const response = await fetch("http://127.0.0.1:5000/insumos");
@@ -64,11 +69,19 @@ async function buscarInsumos(){
     return "Erro ao conectar com o servidor.";
   }
 }
+/////////////////////////////////////////////////////////////
+
+////////////////// orçamentos ///////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////
 
 
 /***********************************************************************************************/
+/***********************************************************************************************/
+/***********************************************************************************************/
+
+
 /* ════════════════════════════════════════════════
    MENU LATERAL (SIDEBAR)
 ════════════════════════════════════════════════ */
@@ -117,7 +130,8 @@ function newConversation() {
     '• "categoria(tipo)" – listar por categoria\n' +
     '• "pedido novo" – criar novo pedido\n' +
     '• "preço(código)" – consultar preço\n' +
-    '• "ajuda" – ver todos os comandos\n\n' +
+    '• "ajuda" – ver todos os comandos\n' +
+    '• "Ver Produtos\n\n' +
     'O que você precisa hoje?'
   );
 }
@@ -419,7 +433,10 @@ const BOT_RESPONSES = {
       ? `Seu orçamento tem ${activeQuoteItems().length} item(ns). Confira no painel ao lado.`
       : 'Seu orçamento está vazio. Use "pedido novo" para adicionar itens.',
 
-  /* FUNÇÃO VER PRODUTOS */
+  /* ******************************************************************************* */
+ /* *************************** Inputs do Usuario ********************************* */
+  /* ******************************************************************************* */
+  
   'ver produtos': async () => {
     return await buscarInsumos();
   },
@@ -429,11 +446,20 @@ const BOT_RESPONSES = {
     return 'Listando convites disponíveis! Adicionei um item de exemplo ao orçamento.';
   },
 
+  /* ******************************************************************************* */
+  /* ******************************************************************************* */
+  /* ******************************************************************************* */
+
+
   /* FUNÇÃO DE PEDIDO NOVO */
   'pedido novo': () => {
     addQuoteItem('Novo Pedido', 'Papel A4', 'Branco Perolado', 200, 'conv-' + (state.quoteCounter + 1));
     return 'Pedido criado! Verifique o painel de orçamento ao lado para confirmar ou excluir.';
   },
+
+
+    
+
 
   'default': (input) => {
     if (input.startsWith('buscar ')) {
