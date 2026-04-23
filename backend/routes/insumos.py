@@ -15,7 +15,7 @@ def criar_insumo():
         }), 400
     
     insumo = {
-        'categoria': data['categoria'],
+        'categoria': data['categoria'].lower(),
         'preco_unitario': data['preco_unitario'],
         'estoque_disponivel': data.get('estoque_disponivel', 0),
         'unidade_medida': data.get('unidade_medida', 'unidade')
