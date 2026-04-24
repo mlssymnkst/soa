@@ -59,7 +59,7 @@ def criar_orcamentos():
         }), 400
     
     insumo = insumos_collection.find_one({
-        "categoria" : categoria
+        "categoria" : data["categoria"]
     })
 
     if not insumo:
@@ -68,8 +68,9 @@ def criar_orcamentos():
         }), 404
     
 
-    preco_unitario = float(insumo["preco_unitario"])
-    estoque_disponivel = int(insumo.get("estoque_disponivel",0))
+    preco_unitario = float(insumo.get("preco_venda", insumo.get("preco_unitario",0)))
+
+    estoque_disponivel = insumo.get("estoque_disponivel",0)
 
     aproveitamento = calcular_aproveitamento(
         largura_folha,
@@ -87,29 +88,32 @@ def criar_orcamentos():
     
     folhas_necessarias = math.ceil(quantidade_convites / aproveitamento)
 
-    if estoque_disponivel < folhas_necessarias:
+    if folhas_necessarias > estoque_disponivel:
         return jsonify({
-            "erro": "Estoque insuficiente para esse orçamento"
+            "err": "Estoque insuficiente",
+            "estoque_disponivel": estoque_disponivel,
+            "necessario": folhas_necessarias
         }), 400
     
+    insumos_collection.update_one(
+        {"_id": insumo["_id"]},
+        {"$inc": {"estoque_disponivel": - folhas_necessarias}}
+    )
+
     custo_total = folhas_necessarias * preco_unitario
     valor_final = custo_total + (custo_total * margem_lucro / 100)
+    estoque_restante = estoque_disponivel - folhas_necessarias
 
     orcamento = {
-        "categoria": categoria,
-        "quantidade_convites":quantidade_convites,
-        "largura_folha": largura_folha,
-        "altura_folha": altura_folha,
-        "largura_impressao": largura_impressao,
-        "altura_impressao": altura_impressao,
-        "margem": margem,
-        "sangria": sangria,
+        "categoria": categoria.lower(),
+        "quantidade_convites": quantidade_convites,
         "aproveitamento": aproveitamento,
         "folhas_necessarias": folhas_necessarias,
         "preco_unitario_folha": preco_unitario,
         "custo_total": custo_total,
         "margem_lucro": margem_lucro,
         "valor_final": valor_final,
+        "estoque_restante": estoque_restante,
         "data_criacao": datetime.now(timezone.utc) 
     }
 
@@ -119,13 +123,14 @@ def criar_orcamentos():
         "msg": "Orçaemento criado com sucesso",
         "id": str(result.inserted_id),
         "orcamento":{
+            "custo_total": custo_total,
             "categoria": categoria,
             "quantidade_convites": quantidade_convites,
             "aproveitamento": aproveitamento,
             "folhas_necessarias": folhas_necessarias,
             "preco_unitario_folha": preco_unitario,
-            "custo_total": margem_lucro,
-            "valor_final": valor_final
+            "valor_final": valor_final,
+            "estoque_restante": estoque_restante
         }
     }), 201
 
@@ -139,7 +144,7 @@ def listar_orcamentos():
         if "data_criacao" in orcamento:
             orcamento["data_criacao"] = orcamento["data_criacao"].isoformat()
 
-            orcamentos.append(orcamento)
+        orcamentos.append(orcamento)
 
     return jsonify(orcamentos)
     
@@ -166,7 +171,7 @@ def buscar_orcamento(id):
 
     return jsonify(orcamento)
 
-@orcamentos_bp.route("/orcamento/<id>", methods=["DELETE"])
+@orcamentos_bp.route("/orcamentos/<id>", methods=["DELETE"])
 def deletar_orcamento(id):
     try:
         result = orcamentos_collection.delete_one({

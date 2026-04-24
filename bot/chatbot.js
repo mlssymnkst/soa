@@ -410,7 +410,7 @@ function insertShortcut(cmd) {
 const BOT_RESPONSES = {
   'ajuda': () =>
     'Comandos disponíveis:\n' +
-    '• "buscar [nome]" – procurar produto\n' +
+    '• "Insumo (nome do insumo)" – procurar produto\n' +
     '• "pedido novo" – criar pedido\n' +
     '• "estoque(código)" – verificar estoque\n' +
     '• "categoria(tipo)" – listar categoria\n' +
