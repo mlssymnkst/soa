@@ -4,6 +4,28 @@ from bson import ObjectId
 
 insumos_bp = Blueprint("insumos", __name__)
 
+#Listar todos ou filtrar por categoria
+@insumos_bp.route("/insumos", methods=["GET"])
+def listar_insumos():
+    categoria = request.args.get("categoria")
+
+    filtro = {}
+
+    if categoria:
+        filtro["categoria"] = {
+            "$regex": categoria.strip(),
+            "$options": "i"
+        }
+
+    insumos = []
+
+    for insumo in insumos_collection.find(filtro):
+        insumo["_id"] = str(insumo["_id"])
+        insumos.append(insumo)
+
+    return jsonify(insumos)
+
+
 #Insumos da empresa
 @insumos_bp.route("/insumos", methods=["POST"])
 def criar_insumo():
@@ -15,7 +37,7 @@ def criar_insumo():
         }), 400
     
     insumo = {
-        'categoria': data['categoria'],
+        'categoria': data['categoria'].lower(),
         'preco_unitario': data['preco_unitario'],
         'estoque_disponivel': data.get('estoque_disponivel', 0),
         'unidade_medida': data.get('unidade_medida', 'unidade')
@@ -28,37 +50,6 @@ def criar_insumo():
         'id': str(result.inserted_id)
     })
 
-#Listar todos os insumos da empresa
-@insumos_bp.route('/insumos', methods=['GET'])
-def listar_insumos():
-    insumos =[]
-
-    for insumo in insumos_collection.find():
-        insumo["_id"] = str(insumo["_id"])
-        insumos.append(insumo)
-
-    return jsonify(insumos)
-#----------------------------------------------------#
-
-#Vai trazer um insumo por ID
-@insumos_bp.route("/insumos/<id>", methods=["GET"])
-def buscar_insumo(id):
-    try:
-        insumo = insumos_collection.find_one({
-            "_id": ObjectId(id)
-        })
-    except:
-        return jsonify({
-            "erro": "ID inválido"
-        }), 400
-    
-    if not insumo:
-        return jsonify({
-            "erro": "Insumo não encontrado"
-        }), 404
-    
-    insumo["_id"] = str(insumo["_id"])
-    return jsonify(insumo)
 #----------------------------------------------------#
 
 
