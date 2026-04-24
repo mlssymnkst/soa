@@ -40,41 +40,31 @@ function dateStr(timestamp) {
 
 ////////////////// insumos ///////////////////////////////////
 
-async function buscarInsumos(){
-    try {
-    const response = await fetch("http://127.0.0.1:5000/insumos");
+async function buscarPorCategoria(categoria){
+  const response = await fetch(`http://127.0.0.1:5000/insumos?categoria=${categoria}`);
+  const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error("Erro ao buscar insumos");
-    }
-
-    const insumos = await response.json();
-
-    if (!insumos.length) {
-      return "Nenhum insumo cadastrado.";
-    }
-
-    let resposta = "📦 Insumos disponíveis:\n\n";
-
-    insumos.forEach(i => {
-      resposta += 
-        `• ${i.categoria}\n` +
-        `   💰 R$ ${i.preco_unitario}\n` +
-        `   📦 Estoque: ${i.estoque_disponivel}\n\n`;
-    });
-
-    return resposta;
-
-  } catch (error) {
-    return "Erro ao conectar com o servidor.";
+  if(!data.length) {
+    return "Nenhum insumo encontrado."
   }
+  
+  let resposta = " Itens encontrados:\n\n";
+
+  data.forEach(i => {
+    resposta += 
+    ` ${i.modelo || i.categoria} \n` +
+    ` - Preço: R$ ${i.preco_venda || i.preco_unitario}\n` +
+    ` - Estoque: ${i.estoque_disponivel} ${i.unidade_medida || ""} \n\n`
+  });
+
+  return resposta;
 }
 /////////////////////////////////////////////////////////////
 
 ////////////////// orçamentos ///////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
 
 
 /***********************************************************************************************/
@@ -432,23 +422,11 @@ const BOT_RESPONSES = {
     activeQuoteItems().length
       ? `Seu orçamento tem ${activeQuoteItems().length} item(ns). Confira no painel ao lado.`
       : 'Seu orçamento está vazio. Use "pedido novo" para adicionar itens.',
-
-  /* ******************************************************************************* */
- /* *************************** Inputs do Usuario ********************************* */
-  /* ******************************************************************************* */
-  
-  'ver produtos': async () => {
-    return await buscarInsumos();
-  },
-
+      
   'produtos': () => {
     addQuoteItem('Convite Clássico', 'Papel A4', 'Esmeralda', 500, 'conv-' + (state.quoteCounter + 1));
     return 'Listando convites disponíveis! Adicionei um item de exemplo ao orçamento.';
   },
-
-  /* ******************************************************************************* */
-  /* ******************************************************************************* */
-  /* ******************************************************************************* */
 
 
   /* FUNÇÃO DE PEDIDO NOVO */
@@ -458,9 +436,7 @@ const BOT_RESPONSES = {
   },
 
 
-    
-
-
+  
   'default': (input) => {
     if (input.startsWith('buscar ')) {
       const term = input.replace('buscar ', '');
@@ -474,15 +450,31 @@ const BOT_RESPONSES = {
   },
 };
 
-async function getBotReply(input) {
-  const key = input.toLowerCase().trim();
+  /* ******************************************************************************* */
+ /* *************************** Inputs do Usuario ********************************* */
+  /* ******************************************************************************* */
+    async function getBotReply(input) {
+    const texto = input.toLowerCase().trim();
 
-  if (BOT_RESPONSES[key]) {
-    return await BOT_RESPONSES[key]();
+    if (texto.startsWith("insumos") || texto.startsWith("insumo")) {
+      const partes = texto.split(" ");
+      const categoria = partes[1]; // pode ser undefined
+
+      return await buscarPorCategoria(categoria);
+    }
+
+    if (BOT_RESPONSES[texto]) {
+      return await BOT_RESPONSES[texto]();
+    }
+
+    return BOT_RESPONSES['default'](texto);
+
   }
 
-  return await BOT_RESPONSES['default'](key);
-}
+  /* ******************************************************************************* */
+  /* ******************************************************************************* */
+  /* ******************************************************************************* */
+
 
 /** Envia a mensagem do usuário e aciona a resposta do bot */
 function sendMessage() {
@@ -500,6 +492,7 @@ setTimeout(async () => {
   addBotMessage(resposta);
   }, 600);
 }
+
 
 /* ════════════════════════════════════════════════
    PAINEL DE ORÇAMENTO

@@ -12,5 +12,6 @@ app.register_blueprint(orcamentos_bp)
 def home():
     return {"msg": "API rodando com sucesso"}
 
+
 if __name__ == "__main__":
     app.run(debug=True)
