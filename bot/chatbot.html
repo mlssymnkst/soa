@@ -40,7 +40,7 @@
     </button>
 
     <!-- Chatbot (ativo) -->
-    <button class="icon-btn" data-tooltip="Chatbot">
+    <button class="icon-btn" data-tooltip="Chatbot" onclick="window.location.href='chatbot.html'"> <!-- TESTAR SE FUNCIONA QUANDO INTEGRAR -->
       <span class="material-icons">reviews</span>
     </button>
 
@@ -51,7 +51,6 @@
 OVERLAY (fecha menu ao clicar fora)
  ════════════════════════════════════════ -->
  <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
-
 
   <!-- ════════════════════════════════════════
        MENU LATERAL (slide-in)
@@ -96,28 +95,27 @@ OVERLAY (fecha menu ao clicar fora)
   <div class="main" id="mainArea">
 
     <!-- Topbar -->
-    <div class="topbar">
-      <div class="brand">
-        <div class="brand-logo">
-          <img src="../images/logo redondo.png" alt="Logo L'amore" class="topbar-logo-img" />
-        </div>
-        <div class="brand-name">Chatbot L'amore</div>
-      </div>
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo">
+      <img src="../images/logo redondo.png" alt="Logo L'amore" class="topbar-logo-img" />
+    </div>
+    <div class="brand-name">Chatbot L'amore</div>
+  </div>
 
-      <div class="topbar-actions">
-        <button class="topbar-icon-btn" title="Buscar">
-          <span class="material-icons">search</span>
-        </button>
-        
-        <button class="topbar-icon-btn" title="Notificações">
-          <span class="material-icons">notifications</span>
-        </button>
+  <div class="topbar-actions">
+    <div class="search-container">
+      <input type="text" placeholder="Pesquisar conversa..." id="searchInput" onkeyup="filterConversations()">
+      <button class="topbar-icon-btn" onclick="filterConversations()" data-tooltip="Pesquisar na Conversa">
+      <span class="material-icons">search</span>
+      </button>
+     </div>
 
-        <button class="topbar-icon-btn" title="Conta">
-          <span class="material-icons">person</span>
-        </button>
-      </div>
-    </div><!-- /topbar -->
+    <button class="topbar-icon-btn" title="Conta">
+      <span class="material-icons">person</span>
+    </button>
+  </div>
+</div><!-- /topbar -->
 
     <!-- Atalhos Rápidos -->
     <div class="shortcuts">
@@ -142,7 +140,7 @@ OVERLAY (fecha menu ao clicar fora)
         Resumo
       </button>
 
-      <button class="shortcut-btn" onclick="insertShortcut('produtos')">
+      <button class="shortcut-btn" onclick="insertShortcut('Modelos')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <line x1="8"    y1="6"  x2="21"   y2="6"/>
           <line x1="8"    y1="12" x2="21"   y2="12"/>
@@ -151,7 +149,7 @@ OVERLAY (fecha menu ao clicar fora)
           <line x1="3"    y1="12" x2="3.01" y2="12"/>
           <line x1="3"    y1="18" x2="3.01" y2="18"/>
         </svg>
-        Produtos
+        Modelos
       </button>
 
       <button class="shortcut-btn" onclick="insertShortcut('ajuda')">

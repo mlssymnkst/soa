@@ -65,9 +65,6 @@ async function buscarInsumos(){
   }
 }
 
-
-
-
 /***********************************************************************************************/
 /* ════════════════════════════════════════════════
    MENU LATERAL (SIDEBAR)
@@ -79,7 +76,6 @@ function toggleMenu() {
   document.getElementById('overlay').classList.toggle('visible',     state.menuOpen);
   document.getElementById('menuToggleBtn').classList.toggle('active', state.menuOpen);
 }
-
 
 /* ════════════════════════════════════════════════
    CONVERSAS
@@ -109,8 +105,8 @@ function newConversation() {
   updateFinishBtn(true);
 
   addBotMessage(
-    'Olá! 👋 Sou o Assistente Virtual da lamore!\n\n' +
-    'Estou aqui para ajudar você a gerenciar nossos produtos de casamento!\n\n' +
+    'Olá! 👋 Sou o Assistente Virtual da Lamore!\n\n' +
+    'Estou aqui para ajudar você a gerenciar nossos produtos!\n\n' +
     '📋 Comandos disponíveis:\n' +
     '• "buscar [nome]" – procurar produtos\n' +
     '• "estoque(código)" – ver estoque\n' +
@@ -251,6 +247,22 @@ function updateFinishBtn(isActive) {
   }
 }
 
+/* Abrir o menu usuário, deslogar TERMINAR */
+
+/* Filtro de pesquisa TERMINAR */
+function filterConversations() {
+  const searchTerm = document.getElementById('search-container input').value.toLowerCase();
+  const convItems = document.querySelectorAll('.conv-item');
+
+  convItems.forEach(item => {
+    const title = item.querySelector('.conv-title').innerText.toLowerCase();
+    if (title.includes(searchTerm)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
 
 /* ════════════════════════════════════════════════
    RENDERIZAÇÃO — LISTA DE CONVERSAS

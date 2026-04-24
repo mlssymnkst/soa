@@ -405,6 +405,14 @@ ICON SIDEBAR (barra de ícones fixa)
   color: var(--pink-lamore2);
   letter-spacing: 0.02em;
 }
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px; 
+  background: transparent;
+  border: none; 
+}
 
 .topbar-actions {
   margin-left: auto;
@@ -416,13 +424,12 @@ ICON SIDEBAR (barra de ícones fixa)
   border-radius: 8px;
 }
 
-/* PRECISO MEXER NESSES BOTÕES*/
 .topbar-icon-btn {
   width: 36px;
   height: 36px;
   background: transparent;
   border: none;
-  border-radius: none;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -433,7 +440,34 @@ ICON SIDEBAR (barra de ícones fixa)
 
 .topbar-icon-btn:hover { 
   background: var(--pink-50); 
-  color: var(--pink-400); }
+  color: var(--pink-400);
+  border: var(--gray-600) }
+
+  /* pesquisar */
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-container input {
+  background: transparent;
+  border: var(--gray-600);
+  padding: 6px 10px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  width: 144px;
+  transition: all 0.2s ease;
+  outline: none;
+  color: var(--blue-lamore);
+}
+
+.search-container input:focus {
+  width: 220px; /* Efeito de expansão ao clicar */
+  border-color: var(--pink-lamore);
+  background: var(--pink-50);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
 
 /* ════════════════════════════════════════
  ATALHOS RÁPIDOS
