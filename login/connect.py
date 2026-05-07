@@ -28,7 +28,7 @@ def insumos():
 
     usuario = session.get('usuario')
 
-    admins = ["haruka", "marley", "admin"]
+    admins = ["haruka", "marly", "admin"]
 
     if usuario and usuario.lower() in admins:
         role = "admin"
