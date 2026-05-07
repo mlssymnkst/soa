@@ -34,7 +34,6 @@ INSERT INTO entrada VALUES (default, 'marly', 'Tapi1112');
 INSERT INTO entrada VALUES (default, 'admin', 'admin01');
 INSERT INTO entrada VALUES (default, 'luiz', '12345');
 INSERT INTO entrada VALUES (default, 'gustavo', '5678910');
-INSERT INTO entrada VALUES (default, 'melissa', '1112131415');
+INSERT INTO entrada VALUES (default, 'melissa', '150125');
 INSERT INTO entrada VALUES (default, 'mariana', '67676767');
-INSERT INTO entrada VALUES (default, 'ramon', '1617181920');\
--- comentario testegi
+INSERT INTO entrada VALUES (default, 'ramon', '1617181920');
