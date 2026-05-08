@@ -1,0 +1,97 @@
+<!--  arrrumar o nome do usuario, conexões entre a tela e banconosql, renomear o arquivo   -->
+
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos - L'amore</title>
+    <link rel="icon" type="image/png" class="logotela" href="../images/french-bulldogINSUMOS.png">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/insumos/insumos.css">
+</head>
+<body>
+
+    <div class="icon-sidebar">
+        <button class="icon-btn" id="menuToggleBtn"> <!--POR ENQUANTO ABA DO MENU NÃO FUNCIONAL-->
+            <span class="material-icons">menu</span>
+        </button>
+
+        <button class="icon-btn" data-tooltip="Editar Insumos" id="btnEditar" onclick="habilitarEdicaoGeral()">
+            <span class="material-icons">edit</span>
+        </button>
+
+       
+
+
+        <button class="icon-btn" data-tooltip="Insumos">
+            <span class="material-icons">inventory_2</span>
+        </button>
+
+        <button class="icon-btn" data-tooltip="Chatbot" onclick="window.location.href='chatbot'">
+            <span class="material-icons">reviews</span>
+        </button>
+    </div>
+
+
+
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+
+    <div class="content">
+        <div class="header">
+            <div class="logo-user">
+                <img src="../images/logo redondo.png" class="logo" alt="Logo">
+                <div>
+                    <p>Bem Vindo, <strong id = "nomeUsuario">Usuário 1</strong></p>
+                    <p>Gerencie seus produtos!</p>
+                    
+                </div>
+            </div>
+
+            
+           
+             <div class="topbar-actions">
+    <div class="search-container">
+      <input type="text" placeholder="Pesquisar conversa..." id="searchInput" onkeyup="pesquisarProduto()">
+      <button class="topbar-icon-btn" onclick="filterConversations()" data-tooltip="Pesquisar na Conversa">
+      <span class="material-icons">search</span>
+      </button>
+     </div>
+
+    <button class="topbar-icon-btn" title="Conta">
+      <span class="material-icons">person</span>
+    </button>
+  </div>
+</div><!-- /topbar -->
+        
+
+        <div class="products-box">
+          <div class="table-header">
+    <span>ID</span>
+    <span>Nome</span>
+    <span>Quantidade</span>
+    <span>Valor</span>
+    
+</div>
+            <div id="productList">
+                </div>
+        </div>
+
+        <div class="pagination" id="pagination-controls">
+            <button class="page-btn" onclick="paginaAnterior()">❮</button>
+            <div id="pageNumbers" style="display: flex; gap: 10px;">
+                <button class="page-number active" onclick="irParaPagina(1)">1</button>
+                <button class="page-number" onclick="irParaPagina(2)">2</button>
+                <button class="page-number" onclick="irParaPagina(3)">3</button>
+                <button class="page-number" onclick="irParaPagina(4)">4</button>
+                <button class="page-number" onclick="irParaPagina(5)">5</button>
+            </div>
+            <button class="page-btn" onclick="proximaPagina()">❯</button>
+        </div>
+    </div>
+
+    <script src="/insumos/insumos.js"></script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-3">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login L'amore</title>
     <link rel="icon" type="image/png" href="../images/logo redondo.png">
@@ -10,16 +10,16 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css_login.css">
+    <link rel="stylesheet" href="/login/css_login.css">
 
 </head>
 <body>
 
     <div class="container">
         <div class="login-box">
-            <img src="../images/logo redondo.png" alt="Lamore" class="logo">
+            <img src="/images/logo redondo.png" alt="Lamore" class="logo">
 
-            <form action="#">
+            <form action="/login_session" method="post"> <!--TROQUEI O "#" PELA CONEXÃO COM O LOGIN.SQL-->
                 <label for="login">Login</label>
                 <input type="text" id="login" name="login" placeholder="Digite o login" required>
 
@@ -27,7 +27,7 @@
                 <div class="password-container">
                     <input type="password" id="senha" name="senha" placeholder="Digite a senha" required>
                     <button type="button" id="toggleBtn" onclick="togglePassword()">
-                        <img src="../images/closed.png" id="eyeIcon" alt="Ver senha">
+                        <img src="/images/closed.png" id="eyeIcon" alt="Ver senha">
                     </button>
                 </div>
 
@@ -44,7 +44,7 @@
             // Se a senha estiver escondida, mostra a senha e troca para o olho aberto
             if (senhaInput.type === 'password') {
                 senhaInput.type = 'text'; 
-                eyeIcon.src = '../images/open.png'; 
+                eyeIcon.src = '/images/open.png'; 
             } 
             // Se a senha estiver visível, esconde e troca para o olho fechado
             else {
@@ -52,6 +52,8 @@
                 eyeIcon.src = '../images/closed.png'; 
             }
         }
+
+ 
     </script>
 
 </body>

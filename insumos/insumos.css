@@ -1,0 +1,457 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Quicksand", sans-serif ;
+    font-weight: 400;
+    font-size: 20px;
+   
+}
+
+:root {
+  --pink-50:  #FBEAF0;
+  --pink-100: #F4C0D1;
+  --pink-lamore: #ED93B1;
+  --pink-400: #D4537E;
+  --pink-lamore2: #B63D5E;
+  --pink-800: #72243E;
+
+  --blue-lamore: #4A4B67;
+  --blue-50: #e5e6fb;
+  --blue-200: #6264a5;
+
+  --gray-50:  #F1EFE8;
+  --gray-100: #D3D1C7;
+  --gray-200: #B4B2A9;
+  --gray-lamore: #a7a9ac;
+  --gray-600: #5F5E5A;
+  --gray-800: #444441;
+
+  --green-50:  #EAF3DE;
+  --green-400: #639922;
+  --green-600: #6D796C;
+
+  --red-50:  #FCEBEB;
+  --red-400: #E24B4A;
+  --red-600: #A32D2D;
+
+  --bg: #F7F4EF;
+  --sidebar-w: 240px;
+}
+
+body {
+  background: var(--gray-50);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  
+}
+.logotela{
+   
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    margin-right: 8px;
+
+}
+
+ /* SIDEBAR MELISSA*/
+.icon-sidebar {
+  width: 60px;
+  background: whitesmoke;
+  border-right: 0.5px solid var(--gray-100);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0;
+  gap: 8px;
+  z-index: 10;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-lamore);
+  transition: background 0.15s, color 0.15s;
+}
+
+.icon-btn .material-icons {
+  font-size: 22px; 
+  font-family: 'Material Icons' !important; 
+}
+
+.icon-btn:hover  { background: var(--pink-50);  color: var(--pink-400); }
+.icon-btn.active { background: #F5E8EE; color: var(--pink-lamore2); }
+
+/* BOTÃO DE EDITAR*/
+
+.edit-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 14px;
+  color: var(--gray-lamore);
+  outline: none;
+}
+
+.edit-input:focus {
+  border-bottom: 1px solid var(--pink-400);
+}
+
+/* excluir */
+.btn-delete {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #ff0015;
+  margin-left: 10px;
+  transition: 0.2s;
+}
+
+.btn-delete:hover {
+  transform: scale(1.2);
+}
+
+
+/* ════════════════════════════════════════
+ MENU SIDEBAR (slide)
+════════════════════════════════════════ */
+.menu-sidebar {
+  width: var(--sidebar-w);
+  background: whitesmoke;
+  border-right: 0.5px solid var(--gray-100);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(calc(-1 * var(--sidebar-w)));
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  position: absolute;
+  left: 60px;
+  top: 0;
+  bottom: 0;
+  z-index: 9;
+}
+
+.menu-sidebar.open { transform: translateX(0); }
+
+.menu-sidebar-inner {
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+
+
+/* Título de seção */
+.sidebar-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  font-family: "Quicksand", sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray-600);
+  margin: 4px 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-section-title .material-icons {
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+}
+
+
+.content {
+  flex: 1;
+  padding: 40px;
+}
+
+.table-container {
+  margin-top: 30px;
+  background: white;
+  border-radius: 20px;
+  padding: 25px;
+}
+
+.table-header { /* TA FODA PRA ALINHAR */
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr; 
+  padding: 15px;
+  border-radius: 12px;
+  border: 2px solid black;
+  font-weight: 600;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr;
+  padding: 18px;
+  margin-top: 10px;
+  background: #E6E6E6;
+  border-radius: 12px;
+  border-bottom: 1px solid black;
+}
+
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.page-number,
+.page-btn {
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 2px solid black;
+  background: white;
+  cursor: pointer;
+}
+
+.page-number.active {
+  background: #E7E768;
+}
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.logo-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo {
+    width: 90px;
+}
+
+.search-box {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 20px;
+    border-radius: 15px;
+    border: 2px solid black;
+    background: #D9D9D9;
+}
+
+.search-box input {
+    padding: 8px;
+    border-radius: 10px;
+    border: none;
+}
+
+.products-box {
+    background: var(---gray-400); /*POR ENQUANTO TA OK*/
+    border-radius: 35px;
+    padding: 20px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr 1fr;
+    padding: 18px;
+    margin-top: 12px;
+    background: #CFCFCF;
+    border-radius: 16px;
+}
+
+
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.3);
+    z-index: 8;
+    display: none; /* Começa escondido */
+}
+
+.overlay.visible {
+    display: block;
+}
+
+/* Garante que o conteúdo não seja esmagado pela sidebar fixa */
+.content {
+    flex: 1;
+    padding: 40px;
+    margin-left: 0; 
+    overflow-y: auto;
+}
+
+/* Corrigido o hover e active dos botões de página */
+.page-number.active {
+    background: #ED93B1; /* Cor da marca */
+    color: white;
+    border-color: var(--pink-lamore2);
+}
+
+
+[data-tooltip] {
+  position: relative;
+  cursor: pointer;
+}
+
+/* Criando o balão do Tooltip */
+[data-tooltip]::after {
+  content: attr(data-tooltip); 
+  position: absolute;
+  left: 110%; 
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--gray-800);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 4px 10px var(--blue-lamore);
+}
+
+[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent var(--blue-lamore) transparent transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+
+
+[data-tooltip]:hover::after,
+[data-tooltip]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(5px);
+}
+
+/* Estilo para os inputs quando o modo edição for ativado */
+.edit-input {
+    width: 90%;
+    padding: 4px 8px;
+    border: 1px solid var(--pink-lamore);
+    border-radius: 5px;
+    font-family: "Quicksand", sans-serif;
+    color: var(--gray-800);
+    background: white;
+}
+
+.save-all-btn {
+    margin-top: 15px;
+    background: var(--pink-lamore2);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    display: none; /* Escondido por padrão */
+}
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 0.5px solid var(--gray-600);
+  border-radius: 8px;
+}
+
+/* PRECISO MEXER NESSES BOTÕES*/
+.topbar-icon-btn {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: none;
+  border-radius: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-lamore);
+  transition: background 0.10s;
+}
+
+.topbar-icon-btn:hover { 
+  background: var(--pink-50); 
+  color: var(--pink-400);
+ }
+ .search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-container input {
+  background: transparent;
+  border: var(--gray-600);
+  padding: 6px 10px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  width: 144px;
+  transition: all 0.2s ease;
+  outline: none;
+  color: var(--blue-lamore);
+}
+
+.search-container input:focus {
+  width: 220px; /* Efeito de expansão ao clicar */
+  border-color: var(--pink-lamore);
+  background: var(--pink-50);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+
+ .edit-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.edit-input  {
+  background: var(--pink-20); /* possivel alteração no edit*/
+  border: var(--gray-600);
+  padding: 6px 10px 6px 10px;
+  border-radius: 20px;
+  font-size: 13px;
+  width: 144px;
+  transition: all 0.2s ease;
+  outline: none;
+  color: var(--blue-lamore);
+}
+
+.edit-input:focus {
+  width: 220px; /* Efeito de expansão ao clicar */
+  border-color: var(--pink-lamore);
+  background: var(--pink-50);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
