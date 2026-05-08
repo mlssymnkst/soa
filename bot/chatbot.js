@@ -11,6 +11,9 @@ const state = {
   convCounter:    0,    // contador de conversas criadas
   quoteCounter:   0,    // contador de itens criados
   deletedConvs:   {},   // — lixeira temporária
+  modoOrcamento: false,
+  etapaOrcamento: null,
+  dadosOrcamento:{}
 };
 
 /* Atalhos para acessar dados da conversa ativa */
@@ -62,7 +65,90 @@ async function buscarPorCategoria(categoria){
 /////////////////////////////////////////////////////////////
 
 ////////////////// orçamentos ///////////////////////////////////
+async function enviarOrcamentoParaAPI(dados) {
+  const response = await fetch("http://127.0.0.1:5000/orcamentos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(dados)
+  })
 
+  return await response.json();
+}
+
+
+async function tratarFluxoOrcamento(text){
+  if(state.etapaOrcamento === "categoria"){
+    state.dadosOrcamento.categoria = text;
+    state.etapaOrcamento = "quantidade_convites";
+    addBotMessage("Informe a quantidade de convites:");
+    return;
+  }
+
+  if(state.etapaOrcamento === "quantidade_convites") {
+    state.dadosOrcamento.quantidade_convites = Number(text);
+    state.etapaOrcamento = "largura_folha";
+    addBotMessage("Informe a largura da folha:");
+    return;
+  }
+
+  if(state.etapaOrcamento === "largura_folha") {
+    state.dadosOrcamento.largura_folha = Number(text);
+    state.etapaOrcamento = "altura_folha";
+    addBotMessage("Informe a altura da folha");
+    return;
+  }
+
+  if (state.etapaOrcamento === "altura_folha") {
+    state.dadosOrcamento.altura_folha = Number(text);
+    state.etapaOrcamento = "largura_impressao";
+    addBotMessage("Informe a largura da impressão:");
+    return;
+  }
+
+
+  if(state.etapaOrcamento === "largura_impressao") {
+    state.dadosOrcamento.largura_impressao = Number(text);
+    state.etapaOrcamento = "altura_impressao";
+    addBotMessage("Informe a altura da impressão:");
+    return;
+  }
+
+  if(state.etapaOrcamento === "altura_impressao") {
+    state.dadosOrcamento.altura_impressao = Number(text);
+
+    state.dadosOrcamento.margem = 1.0;
+    state.dadosOrcamento.sangria = 0.2;
+    state.dadosOrcamento.margem_lucro = 30;
+
+    const resultado = await enviarOrcamentoParaAPI(state.dadosOrcamento);
+
+    if(resultado.erro) {
+      addBotMessage(`${resultado.erro}`);
+    } else {
+      const valor = Number(resultado.orcamento.valor_final).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+
+      addBotMessage(
+        `📄 Orçamento calculado:\n\n` +
+        `📦 Aproveitamento: ${resultado.orcamento.aproveitamento}\n` +
+        `📄 Folhas necessárias: ${resultado.orcamento.folhas_necessarias}\n` +
+        `💰 Custo total: R$ ${resultado.orcamento.custo_total}\n` +
+        `💵 Valor final: ${valor}\n` +
+        `📦 Estoque restante: ${resultado.orcamento.estoque_restante}`
+      );
+    }
+
+    state.modoOrcamento = false;
+    state.etapaOrcamento = null;
+    state.dadosOrcamento = {};
+
+  }
+
+}
 
 /////////////////////////////////////////////////////////////////
 
@@ -431,11 +517,12 @@ const BOT_RESPONSES = {
 
   /* FUNÇÃO DE PEDIDO NOVO */
   'pedido novo': () => {
-    addQuoteItem('Novo Pedido', 'Papel A4', 'Branco Perolado', 200, 'conv-' + (state.quoteCounter + 1));
-    return 'Pedido criado! Verifique o painel de orçamento ao lado para confirmar ou excluir.';
+    state.modoOrcamento = true;
+    state.etapaOrcamento = "categoria";
+    state.dadosOrcamento = {};
+
+    return "Vamos criar um orçamento. Informe a categoria do insumo:";
   },
-
-
   
   'default': (input) => {
     if (input.startsWith('buscar ')) {
@@ -454,20 +541,20 @@ const BOT_RESPONSES = {
  /* *************************** Inputs do Usuario ********************************* */
   /* ******************************************************************************* */
     async function getBotReply(input) {
-    const texto = input.toLowerCase().trim();
+    const text = input.toLowerCase().trim();
 
-    if (texto.startsWith("insumos") || texto.startsWith("insumo")) {
-      const partes = texto.split(" ");
+    if (text.startsWith("insumos") || text.startsWith("insumo")) {
+      const partes = text.split(" ");
       const categoria = partes[1]; // pode ser undefined
 
       return await buscarPorCategoria(categoria);
     }
 
-    if (BOT_RESPONSES[texto]) {
-      return await BOT_RESPONSES[texto]();
+    if (BOT_RESPONSES[text]) {
+      return await BOT_RESPONSES[text]();
     }
 
-    return BOT_RESPONSES['default'](texto);
+    return BOT_RESPONSES['default'](text);
 
   }
 
@@ -479,7 +566,7 @@ const BOT_RESPONSES = {
 /** Envia a mensagem do usuário e aciona a resposta do bot */
 function sendMessage() {
   const input = document.getElementById('chatInput');
-  const text  = input.value.trim();
+  const text = input.value.trim();
   if (!text) return;
 
   if (!state.activeConvId) newConversation();
@@ -487,12 +574,20 @@ function sendMessage() {
   input.value = '';
   addUserMessage(text);
 
-setTimeout(async () => {
-  const resposta = await getBotReply(text);
-  addBotMessage(resposta);
+  // 🔥 fluxo de orçamento
+  if (state.modoOrcamento) {
+    tratarFluxoOrcamento(text);
+    return;
+  }
+
+  // resposta normal do bot
+  setTimeout(async () => {
+    const resposta = await getBotReply(text);
+    addBotMessage(resposta);
   }, 600);
 }
 
+/** Envia a mensagem do usuário e aciona a resposta do bot */
 
 /* ════════════════════════════════════════════════
    PAINEL DE ORÇAMENTO
