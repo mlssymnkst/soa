@@ -11,14 +11,17 @@ const state = {
   convCounter:    0,    // contador de conversas criadas
   quoteCounter:   0,    // contador de itens criados
   deletedConvs:   {},   // — lixeira temporária
-  modoOrcamento: false,
-  etapaOrcamento: null,
-  dadosOrcamento:{}
+
+/* Fluxo de orçamento */
+modoOrcamento: false,
+botSessionId: null,     // Id da sessão do backend do Flask
 };
 
 /* Atalhos para acessar dados da conversa ativa */
 function activeMessages()   { return state.convMessages[state.activeConvId]   || []; }
 function activeQuoteItems() { return state.convQuoteItems[state.activeConvId] || []; }
+
+const BASE_URL = "http://127.0.0.1:5000";
 
 /* ════════════════════════════════════════════════
    UTILITÁRIOS
@@ -37,11 +40,12 @@ function dateStr(timestamp) {
   return new Date(timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-  /* ******************************************************************************* */
- /* *************************** async que irão retornar os valores do banco ********************************* */
-  /* ******************************************************************************* */
+/* ──────────────────────────────────────────
+API Insumos
+async que irão retornar os valores do banco 
+───────────────────────────────────────────── */
 
-////////////////// insumos ///////////////////////////////////
+// Insumos
 
 async function buscarPorCategoria(categoria){
   const response = await fetch(`http://127.0.0.1:5000/insumos?categoria=${categoria}`);
@@ -62,21 +66,21 @@ async function buscarPorCategoria(categoria){
 
   return resposta;
 }
-/////////////////////////////////////////////////////////////
 
-////////////////// orçamentos ///////////////////////////////////
-async function enviarOrcamentoParaAPI(dados) {
-  const response = await fetch("http://127.0.0.1:5000/orcamentos", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(dados)
-  })
+/* ─────────────────────────────────────────────
+API ORÇAMENTO
+──────────────────────────────────────────────── */
 
-  return await response.json();
+// Inicia uma nova sessão de orçamento dentro do backend
+
+async function iniciarSessaoBot() {
+  const res = await fetch (`${BASE_URL}/bot/iniciar`, {method: "POST"});
+  const data = await res.json();
+  state.botSessionId = data.session_id;
+
+  return data;    // {session_id, mensagem, opções}
 }
-
+// PAREI AQUI MELISSA
 
 async function tratarFluxoOrcamento(text){
   if(state.etapaOrcamento === "categoria"){
