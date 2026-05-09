@@ -920,9 +920,9 @@ ICON SIDEBAR (barra de ícones fixa)
 }
 
 .opcao-btn {
-  background: var(--white, #fff);
-  border: 1.5px solid var(--primary, #D4537E);
-  color: var(--primary, #D4537E);
+  background: var(--gray-50);
+  border: 1.5px solid var(--pink-lamore2);
+  color: var(--pink-400);
   border-radius: 20px;
   padding: 6px 16px;
   font-size: 13px;
@@ -932,8 +932,8 @@ ICON SIDEBAR (barra de ícones fixa)
 }
 
 .opcao-btn:hover {
-  background: var(--primary, #D4537E);
-  color: #fff;
+  background: var(--pink-400, #D4537E);
+  color: var(--gray-50);
 }
 
 /* Negrito nas mensagens do bot */
@@ -945,7 +945,7 @@ ICON SIDEBAR (barra de ícones fixa)
 .quote-total-footer {
   margin-top: 12px;
   padding: 12px;
-  border-top: 1.5px solid var(--gray-200, #eee);
+  border-top: 1.5px solid var(--gray-lamore), var(--gray-50);
   font-size: 13px;
   color: var(--gray-700, #333);
   display: flex;
