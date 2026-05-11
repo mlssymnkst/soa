@@ -80,86 +80,45 @@ async function iniciarSessaoBot() {
 
   return data;    // {session_id, mensagem, opções}
 }
-// PAREI AQUI MELISSA
 
-async function tratarFluxoOrcamento(text){
-  if(state.etapaOrcamento === "categoria"){
-    state.dadosOrcamento.categoria = text;
-    state.etapaOrcamento = "quantidade_convites";
-    addBotMessage("Informe a quantidade de convites:");
-    return;
-  }
-
-  if(state.etapaOrcamento === "quantidade_convites") {
-    state.dadosOrcamento.quantidade_convites = Number(text);
-    state.etapaOrcamento = "largura_folha";
-    addBotMessage("Informe a largura da folha:");
-    return;
-  }
-
-  if(state.etapaOrcamento === "largura_folha") {
-    state.dadosOrcamento.largura_folha = Number(text);
-    state.etapaOrcamento = "altura_folha";
-    addBotMessage("Informe a altura da folha");
-    return;
-  }
-
-  if (state.etapaOrcamento === "altura_folha") {
-    state.dadosOrcamento.altura_folha = Number(text);
-    state.etapaOrcamento = "largura_impressao";
-    addBotMessage("Informe a largura da impressão:");
-    return;
-  }
-
-
-  if(state.etapaOrcamento === "largura_impressao") {
-    state.dadosOrcamento.largura_impressao = Number(text);
-    state.etapaOrcamento = "altura_impressao";
-    addBotMessage("Informe a altura da impressão:");
-    return;
-  }
-
-  if(state.etapaOrcamento === "altura_impressao") {
-    state.dadosOrcamento.altura_impressao = Number(text);
-
-    state.dadosOrcamento.margem = 1.0;
-    state.dadosOrcamento.sangria = 0.2;
-    state.dadosOrcamento.margem_lucro = 30;
-
-    const resultado = await enviarOrcamentoParaAPI(state.dadosOrcamento);
-
-    if(resultado.erro) {
-      addBotMessage(`${resultado.erro}`);
-    } else {
-      const valor = Number(resultado.orcamento.valor_final).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
-
-      addBotMessage(
-        `📄 Orçamento calculado:\n\n` +
-        `📦 Aproveitamento: ${resultado.orcamento.aproveitamento}\n` +
-        `📄 Folhas necessárias: ${resultado.orcamento.folhas_necessarias}\n` +
-        `💰 Custo total: R$ ${resultado.orcamento.custo_total}\n` +
-        `💵 Valor final: ${valor}\n` +
-        `📦 Estoque restante: ${resultado.orcamento.estoque_restante}`
-      );
-    }
-
-    state.modoOrcamento = false;
-    state.etapaOrcamento = null;
-    state.dadosOrcamento = {};
-
-  }
-
+/*Envia resposta pro usuário e retorna a próxima */
+async function enviarMensagemBot(texto) {
+  const res = await fetch
+  (`${BASE_URL}/bot/mensagem`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: state.botSessionId, mensagem: texto }),
+  });
+  return await res.json();
+  // retorna: { mensagem, opcoes, acao?, item?, itens_painel?, orcamento_id?, valor_total?, frete? }
 }
 
-/////////////////////////////////////////////////////////////////
+/** Processa a resposta do backend e age sobre a UI */
+async function tratarRespostaBot(resposta) {
+  addBotMessage(resposta.mensagem);
 
+// Renderizor botões
+if (resposta.opcoes && resposta.opcoes.length) {
+  renderOpcoes(resposta.opcoes);
+}
 
-/***********************************************************************************************/
-/***********************************************************************************************/
-/***********************************************************************************************/
+// Item confirmado -> painel
+if (resposta.acao == "item_adicionado" && resposta.item){
+  const item = resposta.item;
+  addQuoteItem(item,titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
+}
+
+//Orçamento gerado 
+//Atualiza o painel com os itens e exibe o total
+if (resposta.acao === "orcamento_gerado") {
+  if (resposta.itens_painel){
+    // Limpar painel e recarregar
+    if (state.activeConvId) state.convQuoteItems[state.activeConvId] = [];
+    resposta.itens_painel.forEach(item => {
+      addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
+    });
+  }
+
 
 
 /* ════════════════════════════════════════════════
