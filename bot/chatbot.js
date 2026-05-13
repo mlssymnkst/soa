@@ -119,6 +119,17 @@ if (resposta.acao === "orcamento_gerado") {
     });
   }
 
+}
+    addTotalAoPanel(resposta.valor_total, resposta.frete);
+    state.modoOrcamento = false;
+    state.botSessionId  = null;
+  }
+ 
+  // Sessão encerrada sem finalizar
+  if (resposta.acao === "encerrado") {
+    state.modoOrcamento = false;
+    state.botSessionId  = null;
+  }
 
 
 /* ════════════════════════════════════════════════
@@ -147,6 +158,10 @@ function newConversation() {
     msgCount:  0,
     active:    true,
   };
+
+  // Reseta modo orçamento ao criar nova conversa
+  state.modoOrcamento = false;
+  state.botSessionId  = null;
 
   state.conversations.unshift(conv);
   state.activeConvId = conv.id;
@@ -466,6 +481,39 @@ function insertShortcut(cmd) {
   input.focus();
 }
 
+/* ══════════════════════════════════════════════
+   BOTÕES DE OPÇÃO (novos — gerados pelo fluxo do backend)
+══════════════════════════════════════════════ */
+function renderOpcoes(opcoes) {
+  // Remove opções anteriores se existirem
+  const existing = document.getElementById('opcoes-bot');
+  if (existing) existing.remove();
+ 
+  const wrap = document.createElement('div');
+  wrap.id        = 'opcoes-bot';
+  wrap.className = 'opcoes-bot-wrap';
+ 
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.className   = 'opcao-btn';
+    btn.textContent = op;
+    btn.onclick = () => {
+      wrap.remove();
+
+      // Insere o texto no input e envia
+      const input = document.getElementById('chatInput');
+      input.value = op;
+      sendMessage();
+    };
+    wrap.appendChild(btn);
+  });
+ 
+  // Injeta após o último balão de bot
+  const container = document.getElementById('messages');
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+ 
 
 /* ════════════════════════════════════════════════
    LÓGICA DE RESPOSTAS DO BOT
