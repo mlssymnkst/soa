@@ -1,4 +1,4 @@
-<!--  arrrumar o nome do usuario, conexões entre a tela e banconosql, renomear o arquivo   -->
+
 
 
 <!DOCTYPE html>
@@ -10,6 +10,7 @@
     <link rel="icon" type="image/png" class="logotela" href="../images/french-bulldogINSUMOS.png">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet"href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="/insumos/insumos.css">
 </head>
 <body>
@@ -60,7 +61,7 @@
       </button>
      </div>
 
-    <button class="topbar-icon-btn" title="Conta">
+    <button class="topbar-icon-btn" title="Conta" onclick="abrirPerfil()">
       <span class="material-icons">person</span>
     </button>
   </div>
@@ -68,6 +69,12 @@
         
 
         <div class="products-box">
+
+            <div class="top-actions">
+    <button class="add-btn" id="btnAdicionar" onclick="abrirModal()">
+        + Adicionar Produto
+    </button>
+</div>
           <div class="table-header">
     <span>ID</span>
     <span>Nome</span>
@@ -91,6 +98,56 @@
             <button class="page-btn" onclick="proximaPagina()">❯</button>
         </div>
     </div>
+
+    <!-- MODAL -->
+<div class="modal" id="modalProduto">
+
+    <div class="modal-content">
+
+        <h2>Adicionar Produto</h2>
+
+        <input type="text" id="nomeProduto" placeholder="Nome do Produto">
+
+        <input type="number" id="qtdProduto" placeholder="Quantidade">
+
+        <input type="number" step="0.01" id="valorProduto" placeholder="Valor">
+
+        <!-- CAMPOS OCULTOS -->
+        <input type="text" id="modeloProduto" placeholder="Modelo">
+
+        <input type="number" id="pesoProduto" placeholder="Peso">
+
+        <input type="number" id="alturaProduto" placeholder="Altura">
+
+        <input type="number" id="larguraProduto" placeholder="Largura">
+
+        <input type="text" id="unidadeProduto" placeholder="Unidade de Medida">
+
+        <div class="modal-buttons">
+            <button onclick="salvarProduto()">Salvar</button>
+            <button onclick="fecharModal()">Cancelar</button>
+        </div>
+
+    </div>
+
+</div>
+
+<!--MODAL DO PERFIL-->
+<div class="profile-modal" id="profileModal">
+
+    <div class="profile-content">
+
+        <h3>Minha Conta</h3>
+
+        <p id="nomePerfil">Usuário</p>
+
+        <button class="logout-btn" onclick="logout()">
+            Sair
+        </button>
+
+    </div>
+
+</div>
 
     <script src="/insumos/insumos.js"></script>
 </body>

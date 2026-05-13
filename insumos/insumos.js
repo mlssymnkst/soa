@@ -13,82 +13,104 @@ function toggleMenu() {
     if (overlay) overlay.classList.toggle('visible', state.menuOpen);
     if (btn) btn.classList.toggle('active', state.menuOpen);
 }
+ //produtos da conexão mongodb
+let produtos = [];
+let produtosFiltrados = [];
 
-const produtos = [
-    { id: 1, nome: "Produto 1", qtd: 69, valor: 100 },
-    { id: 2, nome: "Produto 2", qtd: 67, valor: 400 },
-    { id: 3, nome: "Produto 3", qtd: 10, valor: 30 },
-    { id: 4, nome: "Produto 4", qtd: 24, valor: 20 },
-    { id: 5, nome: "Produto 5", qtd: 6, valor: 40 },
-    { id: 6, nome: "Produto 6", qtd: 7, valor: 500 },
-    { id: 7, nome: "Produto 7", qtd: 9, valor: 10 },
-    { id: 8, nome: "Produto 8", qtd: 11, valor: 70 },
-    { id: 9, nome: "Produto 9", qtd: 5, valor: 60 },
-    { id: 10, nome: "Produto 10", qtd: 3, valor: 90 },
-    { id: 11, nome: "Produto 11", qtd: 15, valor: 120 },
-    { id: 12, nome: "Produto 12", qtd: 2, valor: 55 },
-    { id: 13, nome: "Produto 13", qtd: 35, valor: 33},
-    { id: 14, nome: "Produto 14", qtd: 79, valor: 83},
-    { id: 15, nome: "Produto 15", qtd: 90, valor: 330},
-    { id: 16, nome: "Produto 16", qtd: 105, valor: 133},
-    { id: 17, nome: "Produto 17", qtd: 305, valor: 233},
-    { id: 18, nome: "Produto 18", qtd: 300, valor: 10},
-    { id: 19, nome: "Produto 19", qtd: 100, valor: 100},
-    { id: 20, nome: "Produto 20", qtd: 135, valor: 333},
-    { id: 21, nome: "Produto 21", qtd: 10, valor: 400},
-    { id: 22, nome: "Produto 22", qtd: 1, valor: 3},
-    { id: 23, nome: "Produto 23", qtd: 15, valor: 400},
-    { id: 24, nome: "Produto 24", qtd: 40, valor: 200},
-    { id: 25, nome: "Produto 25", qtd: 200, valor: 25}
-];
+async function carregarProdutos() {
+
+    try {
+
+        const resposta = await fetch('/api/insumos');
+
+        produtos = await resposta.json();
+
+        produtosFiltrados = [...produtos];
+
+        mostrarProdutos();
+
+    } catch (erro) {
+
+        console.log("Erro ao carregar produtos:", erro);
+
+    }
+}
 
 let paginaAtual = 1;
 const itensPorPagina = 10;
-let produtosFiltrados = [...produtos]; // Começa com todos
+ 
 
 function mostrarProdutos() {
+
     const container = document.getElementById("productList");
+
     container.innerHTML = "";
 
     const inicio = (paginaAtual - 1) * itensPorPagina;
+
     const fim = inicio + itensPorPagina;
+
     const produtosPagina = produtosFiltrados.slice(inicio, fim);
 
     produtosPagina.forEach(produto => {
 
-        const podeExcluir = (typeof USER_ROLE !== "undefined" && USER_ROLE === "admin");
+        const podeExcluir =
+            (typeof USER_ROLE !== "undefined" && USER_ROLE === "admin");
 
         container.innerHTML += `
         <div class="row">
-            <span>${produto.id}</span>
+            <span>${produto.id_visual}</span> 
+
             <span>${produto.nome}</span>
+
             <span>${produto.qtd}</span>
-            <span>R$ ${produto.valor.toFixed(2)}</span>
-            ${podeExcluir ? `<button class="btn-delete" onclick="excluirProduto(${produto.id})">🗑️</button>` : ''}
+
+            <span>R$ ${Number(produto.valor).toFixed(2)}</span>
+
+            ${
+                podeExcluir
+                ? `<button class="btn-delete"
+                    onclick="excluirProduto('${produto.id}')">
+                    
+                    <span class="material-symbols-outlined">
+        delete
+    </span>
+                   </button>`
+                : ''
+            }
+
         </div>`;
     });
 }
 // excluir
-function excluirProduto(id) {
+async function excluirProduto(id) {
 
     if (USER_ROLE !== "admin") {
-        alert("Você não tem permissão para excluir!");
+        alert("Você não tem permissão!");
         return;
     }
 
-    const confirmar = confirm("Tem certeza que deseja excluir este produto?");
+    const confirmar = confirm("Deseja excluir este produto?");
+
     if (!confirmar) return;
 
-    // Remove do array principal
-    const index = produtos.findIndex(p => p.id === id);
-    if (index !== -1) {
-        produtos.splice(index, 1);
+    try {
+
+        const resposta = await fetch(`/api/excluir_insumo/${id}`, {
+            method: 'DELETE'
+        });
+
+        const resultado = await resposta.json();
+
+        alert(resultado.mensagem);
+
+        carregarProdutos();
+
+    } catch (erro) {
+
+        console.log("Erro ao excluir:", erro);
+
     }
-
-    // Atualiza lista filtrada
-    produtosFiltrados = produtos;
-
-    mostrarProdutos();
 }
 
 function irParaPagina(numero) {
@@ -139,7 +161,7 @@ function pesquisarProduto() {
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-    mostrarProdutos();
+    carregarProdutos();
 
     console.log("ROLE NO LOAD:", USER_ROLE);
 
@@ -191,28 +213,150 @@ function habilitarEdicaoGeral() {
     btn.style.display = "block"; // 🔥 força aparecer
 }
 // NOVA FUNÇÃO: Salva os dados dos inputs de volta para o array 'produtos'
-function salvarTodasAlteracoes() {
+async function salvarTodasAlteracoes() {
+
     const rows = document.querySelectorAll("#productList .row");
-    
+
+    const produtosEditados = [];
+
     rows.forEach(row => {
-        const id = parseInt(row.querySelector("span:nth-child(1)").innerText);
+
+        const spans = row.querySelectorAll("span");
         const inputs = row.querySelectorAll("input");
-        
-        // Localiza o produto no seu array original pelo ID
-        const produto = produtos.find(p => p.id === id);
-        
+
+        const idVisual = spans[0].innerText;
+
+        const produto = produtos.find(
+            p => String(p.id_visual) === String(idVisual)
+        );
+
         if (produto) {
-            produto.nome = inputs[0].value;
-            produto.qtd = parseInt(inputs[1].value);
-            produto.valor = parseFloat(inputs[2].value);
+
+            produtosEditados.push({
+
+                id: produto.id,
+
+                nome: inputs[0].value,
+
+                qtd: parseInt(inputs[1].value),
+
+                valor: parseFloat(inputs[2].value)
+            });
         }
     });
 
-    alert("Todos os produtos foram atualizados com sucesso!");
-    
-    // Remove o botão de salvar e redesenha a tabela usando sua função original
-    document.getElementById("btnSalvarGeral").remove();
-    mostrarProdutos(); 
+    try {
+
+        const resposta = await fetch('/api/editar_insumos', {
+
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(produtosEditados)
+        });
+
+        const resultado = await resposta.json();
+
+        alert(resultado.mensagem);
+
+        document.getElementById("btnSalvarGeral").remove();
+
+        carregarProdutos();
+
+    } catch (erro) {
+
+        console.log("Erro:", erro);
+
+    }
 }
 
+function abrirModal() {
+    document.getElementById("modalProduto").style.display = "flex";
+}
 
+function fecharModal() {
+    document.getElementById("modalProduto").style.display = "none";
+}
+
+async function salvarProduto() {
+
+    const dados = {
+
+        nome: document.getElementById("nomeProduto").value,
+        qtd: document.getElementById("qtdProduto").value,
+        valor: document.getElementById("valorProduto").value,
+
+        modelo: document.getElementById("modeloProduto").value,
+        peso: document.getElementById("pesoProduto").value,
+        altura: document.getElementById("alturaProduto").value,
+        largura: document.getElementById("larguraProduto").value,
+        unidade_medida: document.getElementById("unidadeProduto").value
+    };
+
+    try {
+
+        const resposta = await fetch('/api/adicionar_insumo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(dados)
+        });
+
+        const resultado = await resposta.json();
+
+        alert(resultado.mensagem);
+
+        fecharModal();
+
+        carregarProdutos();
+
+    } catch (erro) {
+
+        console.log("Erro ao salvar:", erro);
+
+    }
+}
+
+// restrição para add produto
+document.addEventListener('DOMContentLoaded', () => {
+
+    carregarProdutos();
+
+    console.log("ROLE NO LOAD:", USER_ROLE);
+
+    if (USER_ROLE !== "admin") {
+
+        const btnEditar = document.getElementById("btnEditar");
+        if (btnEditar) btnEditar.style.display = "none";
+
+        const btnAdd = document.getElementById("btnAdicionar");
+        if (btnAdd) btnAdd.style.display = "none";
+    }
+})
+
+function abrirPerfil() {
+
+    const modal = document.getElementById("profileModal");
+
+    const nome = document.getElementById("nomeUsuario").innerText;
+
+    document.getElementById("nomePerfil").innerText = nome;
+
+    if (modal.style.display === "block") {
+
+        modal.style.display = "none";
+
+    } else {
+
+        modal.style.display = "block";
+    }
+}
+
+function logout() {
+
+    window.location.href = "/";
+};

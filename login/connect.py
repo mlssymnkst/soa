@@ -1,6 +1,8 @@
 #arrrumar o nome do usuario, conexões entre a tela e banconosql
 
-from flask import Flask, request, redirect, send_from_directory, session
+from flask import Flask, request, redirect, send_from_directory, session, jsonify
+from pymongo import MongoClient
+from bson import ObjectId
 import psycopg2, os
 
 app = Flask(__name__)
@@ -13,6 +15,15 @@ conn = psycopg2.connect(
     user="postgres",
     password="1234",
 )
+
+# conexão com o mongodb
+# conexão MongoDB
+mongo_client = MongoClient("mongodb://localhost:27017/")
+
+mongo_db = mongo_client["soa"]
+
+colecao_insumos = mongo_db["insumos"]
+
 
 @app.route('/')
 def login_page():
@@ -112,5 +123,146 @@ def arquivos_insumos(arquivo):
     base = os.path.dirname(os.path.abspath(__file__))
     caminho = os.path.join(base, '..', 'insumos')
     return send_from_directory(caminho, arquivo)
+
+#adicionar produto
+@app.route('/api/adicionar_insumo', methods=['POST'])
+def adicionar_insumo():
+
+    if not usuario_admin():
+        return jsonify({
+            "erro": "Sem permissão"
+        }), 403
+
+    dados = request.json
+
+    # cria ID visual
+    ultimo = colecao_insumos.count_documents({}) + 1
+
+    novo_produto = {
+
+        "id_visual": ultimo,
+
+        "modelo": dados.get("nome"),
+
+        "estoque_disponivel": int(dados.get("qtd")),
+
+        "preco_venda": float(dados.get("valor")),
+
+        # CAMPOS EXTRAS
+        "modelo_detalhado": dados.get("modelo"),
+
+        "peso": dados.get("peso"),
+
+        "altura": dados.get("altura"),
+
+        "largura": dados.get("largura"),
+
+        "unidade_medida": dados.get("unidade_medida")
+    }
+
+    colecao_insumos.insert_one(novo_produto)
+
+    return jsonify({
+        "mensagem": "Produto adicionado com sucesso!"
+    })
+
+#mongodb dos produtos da tela de insumos
+@app.route('/api/insumos')
+def api_insumos():
+
+    produtos = []
+
+    contador = 1
+
+    for item in colecao_insumos.find():
+
+        # cria id_visual automaticamente se não existir
+        if "id_visual" not in item:
+
+            colecao_insumos.update_one(
+                {"_id": item["_id"]},
+                {
+                    "$set": {
+                        "id_visual": contador
+                    }
+                }
+            )
+
+            item["id_visual"] = contador
+
+        produtos.append({
+
+            "id": str(item["_id"]),
+
+            "id_visual": item.get("id_visual"),
+
+            "nome": item.get("modelo"),
+
+            "qtd": item.get("estoque_disponivel"),
+
+            "valor": item.get("preco_venda")
+        })
+
+        contador += 1
+
+    return jsonify(produtos)
+
+#RESTRIÇÃO DE PRODUTOS
+def usuario_admin():
+
+    usuario = session.get('usuario')
+
+    admins = ["haruka", "marly", "admin"]
+
+    return usuario and usuario.lower() in admins
+
+#excluir produto com restrição
+
+@app.route('/api/excluir_insumo/<id>', methods=['DELETE'])
+def excluir_insumo(id):
+
+    if not usuario_admin():
+        return jsonify({
+            "erro": "Sem permissão"
+        }), 403
+
+    colecao_insumos.delete_one({
+        "_id": ObjectId(id)
+    })
+
+    return jsonify({
+        "mensagem": "Produto excluído!"
+    })
+
+
+    #editar insumos
+@app.route('/api/editar_insumos', methods=['POST'])
+def editar_insumos():
+
+    if not usuario_admin():
+        return jsonify({
+            "erro": "Sem permissão"
+        }), 403
+
+    dados = request.json
+
+    for produto in dados:
+
+        colecao_insumos.update_one(
+            {
+                "_id": ObjectId(produto["id"])
+            },
+            {
+                "$set": {
+                    "modelo": produto["nome"],
+                    "estoque_disponivel": produto["qtd"],
+                    "preco_venda": produto["valor"]
+                }
+            }
+        )
+
+    return jsonify({
+        "mensagem": "Produtos atualizados!"
+    })
 
 app.run(debug=True)
