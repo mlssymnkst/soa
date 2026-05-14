@@ -187,7 +187,7 @@ body {
   padding: 25px;
 }
 
-.table-header { /* TA FODA PRA ALINHAR */
+.table-header { /* TA FODA PRA ALINHAR */ /*alinhei */
   display: grid;
   grid-template-columns: 1fr 2fr 1fr 1fr; 
   padding: 15px;
@@ -501,8 +501,19 @@ body {
     display:flex;
     justify-content:space-between;
     margin-top:10px;
+   
 }
 
+/* Customização dos botões do formualrio  */
+.modal-button{
+    display:flex;
+    font-weight: 700;
+    border-radius:5px;
+    
+    
+    background: var(--pink-lamore2);
+    color: white;
+}
 .profile-modal{
 
     display:none;

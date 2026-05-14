@@ -50,7 +50,7 @@ def insumos():
 
     html = html.replace('Usuário 1', usuario if usuario else 'Visitante')
 
-    # 🔥 INJETA ROLE ANTES DO JS
+    # INJETA ROLE ANTES DO JS (para puxar o nome do usuario)
     html = html.replace(
         '<script src="/insumos/insumos.js"></script>',
         f"""
@@ -114,7 +114,7 @@ def login_session():
     else:
         return "Login inválido"
 
-#inusmos
+
 
 
 #css insumos
@@ -135,7 +135,7 @@ def adicionar_insumo():
 
     dados = request.json
 
-    # cria ID visual
+    # ID visual para não puxar do mongodb
     ultimo = colecao_insumos.count_documents({}) + 1
 
     novo_produto = {
@@ -148,7 +148,7 @@ def adicionar_insumo():
 
         "preco_venda": float(dados.get("valor")),
 
-        # CAMPOS EXTRAS
+        # CAMPOS EXTRAS que não aparece no forms
         "modelo_detalhado": dados.get("modelo"),
 
         "peso": dados.get("peso"),

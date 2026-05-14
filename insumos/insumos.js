@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// NOVA FUNÇÃO: Transforma a tabela em campos editáveis
+// Transforma a tabela em campos editáveis
 function habilitarEdicaoGeral() {
 
     console.log("ROLE:", USER_ROLE); // DEBUG
@@ -198,7 +198,7 @@ function habilitarEdicaoGeral() {
         spans[3].innerHTML = `<input class="edit-input" type="number" step="0.01" value="${valorAtual}">`;
     });
 
-    // 🔥 GARANTE QUE O BOTÃO SEMPRE APAREÇA
+    //  GARANTE QUE O BOTÃO SEMPRE APAREÇA
     let btn = document.getElementById("btnSalvarGeral");
 
     if (!btn) {
@@ -212,7 +212,7 @@ function habilitarEdicaoGeral() {
 
     btn.style.display = "block"; // 🔥 força aparecer
 }
-// NOVA FUNÇÃO: Salva os dados dos inputs de volta para o array 'produtos'
+//  Salva os dados dos inputs de volta para o array 'produtos'
 async function salvarTodasAlteracoes() {
 
     const rows = document.querySelectorAll("#productList .row");
