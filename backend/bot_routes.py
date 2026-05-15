@@ -262,8 +262,8 @@ def h_tem_modelo(sid: str, txt: str) -> dict:
         modelos = listar_modelos(produto)
         if not modelos:
             s["etapa"] = "pedir_envelope"
-            return {"mensagem": f"Não há modelos prontos para '{produto}'. Vamos configurar manualmente.\n\nQual envelope será utilizado?",}
-            "opcoes": listar_envelopes
+            return {"mensagem": f"Não há modelos prontos para '{produto}'. Vamos configurar manualmente.\n\nQual envelope será utilizado?",
+            "opcoes": listar_envelopes}
         s["etapa"] = "pedir_modelo"
         return proxima_mensagem(sid)
     elif is_nao(txt):

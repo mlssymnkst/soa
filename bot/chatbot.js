@@ -14,7 +14,9 @@ const state = {
 
 /* Fluxo de orçamento */
 modoOrcamento: false,
-botSessionId: null,     // Id da sessão do backend do Flask
+botSessionId: null, //Id da sessão backend do Flask
+etapaOrcamento: null,
+dadosOrcamento: {}
 };
 
 /* Atalhos para acessar dados da conversa ativa */

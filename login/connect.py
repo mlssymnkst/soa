@@ -13,7 +13,7 @@ conn = psycopg2.connect(
     host="localhost",
     database="lamore",
     user="postgres",
-    password="1234",
+    password="sql1501"
 )
 
 # conexão com o mongodb
