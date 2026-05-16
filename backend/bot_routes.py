@@ -116,13 +116,9 @@ def listar_fitas() -> list:
 def listar_adicionais() -> list:
     try:
         docs = insumos_collection.distinct("adicionais")
-        return [e for e in docs if e] or ["Enbalagem plástico", "Arroz 15g", "Lenço Unitário"]
-    except Exception:
-        
-        return docs or adicionais_placeholder()
+        return [e for e in docs if e] or adicionais_placeholder()
     except Exception:
         return adicionais_placeholder()
-        
 
 # ══════════════════════════════════════════════
 # FRETE
@@ -132,11 +128,15 @@ FRETE_GRATIS = 350.0
  
 def calcular_frete(valor_total: float, peso_gramas: float, endereco: str) -> dict:
     if valor_total >= FRETE_GRATIS:
-        return {"valor": 0.0}
-
-    #****************************************
-    # TODO: Integrar com API de frete real (ex: Melhor Envio, Correios). 
-
+        return {"valor": 0.0, "prazo_dias": 7, "transportadora": "Frete grátis"}
+    # TODO: Integrar com API de frete real (ex: Melhor Envio, Correios)
+    peso_kg = peso_gramas / 1000
+    return {
+        "valor":          round(15.0 + (peso_kg * 3.5), 2),
+        "prazo_dias":     5,
+        "transportadora": "A definir",
+        "obs":            "Valor simulado — integração com API de frete pendente",
+    }
 # ══════════════════════════════════════════════
 # HELPERS DE FLUXO
 # ══════════════════════════════════════════════
@@ -173,10 +173,10 @@ def proxima_mensagem(sid: str) -> dict:
 
         "pedir_cm_fita":    {"mensagem": "Quantos cm de fita por unidade?", "opcoes": []},
 
-        "pedir_adicional": {"mensagem": "Será adicionado algum adicional? (Embalagem, arroz, lenço)", "opções": ["Sim", "Não"]},
-        "pedir_qual_fita":  {"mensagem": "Qual adicional?",
-                             "opcoes":   [f["modelo"] for f in listar_adicionais()]},
-
+        "pedir_adicional":       {"mensagem": "Será adicionado algum adicional? (Embalagem, arroz, lenço)",
+                                  "opcoes":   ["Sim", "Não"]},
+        "pedir_qual_adicional":  {"mensagem": "Qual adicional?",
+                                  "opcoes":   [a["modelo"] for a in listar_adicionais()]},
         "pedir_endereco":   {"mensagem": "Qual o endereço de entrega? (rua, número, cidade e CEP)",
                              "opcoes":   []},
 
@@ -263,7 +263,7 @@ def h_tem_modelo(sid: str, txt: str) -> dict:
         if not modelos:
             s["etapa"] = "pedir_envelope"
             return {"mensagem": f"Não há modelos prontos para '{produto}'. Vamos configurar manualmente.\n\nQual envelope será utilizado?",
-            "opcoes": listar_envelopes}
+                    "opcoes": listar_envelopes()}
         s["etapa"] = "pedir_modelo"
         return proxima_mensagem(sid)
     elif is_nao(txt):
@@ -307,11 +307,11 @@ def h_modelo(sid: str, txt: str) -> dict:
     }
  
 def h_envelope (sid: str, txt: str) -> dict:
-    s          =_sessoes[sid]
-    envelopes = listar_envelopes
-    match      = casar(txt, envelopes)
+    s         = _sessoes[sid]
+    envelopes = listar_envelopes()
+    match     = casar(txt, envelopes)
     if not match:
-        return {"mensagem": "Envelope não encontrada. Escolha uma da lista:", "opcoes": envelopes}
+        return {"mensagem": "Envelope não encontrado. Escolha um da lista:", "opcoes": envelopes}
     s["produto_atual"]["envelope"] = match
     s["etapa"] = "pedir_tamanho"
     return proxima_mensagem(sid)
@@ -433,10 +433,55 @@ def h_finalizacao(sid: str, txt: str) -> dict:
     return {"mensagem": "Responda Sim ou Não.", "opcoes": ["Sim", "Não"]}
  
 # *****************************************
-# PRECISA CRIAR O HANDLER DA ETAPA DO FRETE
+# PRECISA REVISAR O HANDLER DA ETAPA DO FRETE
 # DEF API - ENDEREÇO, PESO DA ENCOMENDA ETC 
 # *****************************************
-
+def h_endereco(sid: str, txt: str) -> dict:
+    s = _sessoes[sid]
+    if len(txt) < 5:
+        return {"mensagem": "Informe um endereço de entrega válido (rua, número, cidade e CEP).", "opcoes": []}
+    s["endereco"] = txt
+    subtotal   = sum(i.get("custo_papel", 0) + i.get("custo_fita", 0) for i in s["itens"])
+    peso_total = sum(i.get("peso_g", 0) for i in s["itens"])
+    frete      = calcular_frete(subtotal, peso_total, txt)
+    valor_total = round(subtotal + frete["valor"], 2)
+    s["frete"]       = frete
+    s["valor_total"] = valor_total
+    doc = {
+        "session_id":  sid,
+        "itens":       s["itens"],
+        "endereco":    txt,
+        "frete":       frete,
+        "valor_total": valor_total,
+        "criado_em":   datetime.utcnow().isoformat(),
+        "status":      "finalizado",
+    }
+    result       = orcamentos_collection.insert_one(doc)
+    orcamento_id = str(result.inserted_id)
+    itens_painel = [
+        {
+            "titulo":     item["produto"],
+            "papel":      item.get("papel", "—"),
+            "envelope":   item.get("envelope", "—"),
+            "quantidade": item["quantidade"],
+            "fita":       item.get("fita", "Nenhuma"),
+            "custo":      round(item.get("custo_papel", 0) + item.get("custo_fita", 0), 2),
+        }
+        for item in s["itens"]
+    ]
+    return {
+        "mensagem": (
+            f"🚚 *Frete*: R$ {frete['valor']:.2f} | Prazo: {frete['prazo_dias']} dias úteis\n"
+            f"💰 *Total com frete*: R$ {valor_total:.2f}\n\n"
+            f"✅ Orçamento #{orcamento_id[:8].upper()} gerado e salvo com sucesso!"
+        ),
+        "opcoes":       [],
+        "acao":         "orcamento_gerado",
+        "orcamento_id": orcamento_id,
+        "itens_painel": itens_painel,
+        "valor_total":  valor_total,
+        "frete":        frete,
+    }
 # ══════════════════════════════════════════════
 # MOTOR DO FLUXO
 # ══════════════════════════════════════════════
@@ -446,7 +491,7 @@ DESPACHO = {
     "pedir_quantidade":  h_quantidade,
     "tem_modelo":        h_tem_modelo,
     "pedir_modelo":      h_modelo,
-    "pedir_envelopes":   h_envelope,
+    "pedir_envelope":    h_envelope,
     "pedir_tamanho":     h_tamanho,
     "pedir_papel":       h_papel,
     "pedir_fita":        h_fita,
@@ -454,6 +499,7 @@ DESPACHO = {
     "pedir_cm_fita":     h_cm_fita,
     "perguntar_mais":    h_mais_produto,
     "pedir_finalizacao": h_finalizacao,
+    "pedir_endereco":    h_endereco,
     "devolver_insumos":  h_devolver,
 }
  
@@ -468,15 +514,15 @@ def processar(sid: str, txt: str) -> dict:
 # ROTA: Iniciar sessão
 # ─────────────────────────────────────────────
 @bot_bp.route("/bot/iniciar", methods=["POST"])
-def inciar_sessao():
+def iniciar_sessao():   
     sid = str(uuid.uuid4())
     _sessoes[sid] = {
-        "etapa": "pedir_produto",
+        "etapa":         "pedir_produto",
         "produto_atual": {},
-        "itens": [],    # produtos que foram confirmados
-        "endereço": None,
-        "frete": None,
-        "valor_total": 0,
+        "itens":         [],
+        "endereco":      None,
+        "frete":         None,
+        "valor_total":   0,
     }
     return jsonify({"session_id": sid, **proxima_mensagem(sid)})
  

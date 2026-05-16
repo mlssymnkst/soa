@@ -2,6 +2,7 @@
 'use strict';
 
 /* ── ESTADO GLOBAL ── */
+
 const state = {
   conversations:  [],   // lista de conversas
   activeConvId:   null, // id da conversa selecionada
@@ -13,10 +14,10 @@ const state = {
   deletedConvs:   {},   // — lixeira temporária
 
 /* Fluxo de orçamento */
-modoOrcamento: false,
-botSessionId: null, //Id da sessão backend do Flask
-etapaOrcamento: null,
-dadosOrcamento: {}
+  modoOrcamento:  false,
+  botSessionId:   null,
+  etapaOrcamento: null,
+  dadosOrcamento: {}
 };
 
 /* Atalhos para acessar dados da conversa ativa */
@@ -97,7 +98,12 @@ async function enviarMensagemBot(texto) {
 
 /** Processa a resposta do backend e age sobre a UI */
 async function tratarRespostaBot(resposta) {
-  addBotMessage(resposta.mensagem);
+  if (resposta.erro) {
+    addBotMessage("Erro:" + resposta.erro);
+    return;
+  }
+  if (resposta.mensagem) {
+  addBotMessage(resposta.mensagem);}
 
 // Renderizor botões
 if (resposta.opcoes && resposta.opcoes.length) {
@@ -105,35 +111,54 @@ if (resposta.opcoes && resposta.opcoes.length) {
 }
 
 // Item confirmado -> painel
-if (resposta.acao == "item_adicionado" && resposta.item){
+if (resposta.acao === "item_adicionado" && resposta.item){
   const item = resposta.item;
-  addQuoteItem(item,titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
+  addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
 }
 
 //Orçamento gerado 
 //Atualiza o painel com os itens e exibe o total
-if (resposta.acao === "orcamento_gerado") {
-  if (resposta.itens_painel){
-    // Limpar painel e recarregar
-    if (state.activeConvId) state.convQuoteItems[state.activeConvId] = [];
-    resposta.itens_painel.forEach(item => {
-      addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
-    });
-  }
-
-}
-    addTotalAoPanel(resposta.valor_total, resposta.frete);
+  if (resposta.acao === "orcamento_gerado") {
+    if (resposta.itens_painel) {
+      if (state.activeConvId) state.convQuoteItems[state.activeConvId] = [];
+      resposta.itens_painel.forEach(item => {
+        addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
+      });
+    }
+    addTotalAoPanel(resposta.valor_total, resposta.frete);  // FIX 5: estava fora do if
     state.modoOrcamento = false;
     state.botSessionId  = null;
   }
- 
-  // Sessão encerrada sem finalizar
   if (resposta.acao === "encerrado") {
     state.modoOrcamento = false;
     state.botSessionId  = null;
   }
+}
 
-
+// Render Mensagens
+function renderOpcoes(opcoes) {
+  const existing = document.getElementById('opcoes-bot');
+  if (existing) existing.remove();
+ 
+  const wrap = document.createElement('div');
+  wrap.id        = 'opcoes-bot';
+  wrap.className = 'opcoes-bot-wrap';
+ 
+  opcoes.forEach(op => {
+    const btn = document.createElement('button');
+    btn.className   = 'opcao-btn';
+    btn.textContent = op;
+    btn.onclick = () => {
+      wrap.remove();
+      document.getElementById('chatInput').value = op;
+      sendMessage();
+    };
+    wrap.appendChild(btn);
+  });
+ 
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop = 99999;
+}
 /* ════════════════════════════════════════════════
    MENU LATERAL (SIDEBAR)
 ════════════════════════════════════════════════ */
@@ -152,41 +177,38 @@ function toggleMenu() {
 /** Cria uma nova conversa e a define como ativa */
 function newConversation() {
   state.convCounter++;
+  const convId = state.convCounter; // Referência fixa para este escopo
 
   const conv = {
-    id:        state.convCounter,
-    name:      'Conversa ' + state.convCounter,
+    id: convId,
+    name: 'Conversa ' + convId,
     createdAt: Date.now(),
-    msgCount:  0,
-    active:    true,
+    msgCount: 0,
+    active: true,
   };
 
-  // Reseta modo orçamento ao criar nova conversa
   state.modoOrcamento = false;
-  state.botSessionId  = null;
+  state.botSessionId = null;
 
   state.conversations.unshift(conv);
-  state.activeConvId = conv.id;
-  state.convMessages[conv.id]   = [];
-  state.convQuoteItems[conv.id] = [];
+  state.activeConvId = convId;
+  state.convMessages[convId] = [];
+  state.convQuoteItems[convId] = [];
 
+  // Primeiro renderiza a estrutura vazia
   renderConvList();
-  renderMessages();
   renderQuotePanel();
   updateFooter();
   updateFinishBtn(true);
 
+  // Agora adiciona a mensagem (que chamará o renderMessages internamente)
   addBotMessage(
     'Olá! 👋 Sou o Assistente Virtual da Lamore!\n\n' +
     'Estou aqui para ajudar você a gerenciar nossos produtos!\n\n' +
     '📋 Comandos disponíveis:\n' +
     '• "buscar [nome]" – procurar produtos\n' +
-    '• "estoque(código)" – ver estoque\n' +
-    '• "categoria(tipo)" – listar por categoria\n' +
     '• "pedido novo" – criar novo pedido\n' +
-    '• "preço(código)" – consultar preço\n' +
     '• "ajuda" – ver todos os comandos\n' +
-    '• "Ver Produtos\n\n' +
     'O que você precisa hoje?'
   );
 }
@@ -324,16 +346,12 @@ function updateFinishBtn(isActive) {
 
 /* Filtro de pesquisa TERMINAR */
 function filterConversations() {
-  const searchTerm = document.getElementById('search-container input').value.toLowerCase();
-  const convItems = document.querySelectorAll('.conv-item');
-
-  convItems.forEach(item => {
-    const title = item.querySelector('.conv-title').innerText.toLowerCase();
-    if (title.includes(searchTerm)) {
-      item.style.display = 'flex';
-    } else {
-      item.style.display = 'none';
-    }
+  const input = document.getElementById('searchInput');
+  if (!input) return;
+  const term = input.value.toLowerCase();
+  document.querySelectorAll('.conv-card').forEach(card => {
+    const title = card.querySelector('.conv-name-input')?.value?.toLowerCase() || '';
+    card.style.display = title.includes(term) ? 'flex' : 'none';
   });
 }
 
@@ -568,23 +586,25 @@ const BOT_RESPONSES = {
   /* ******************************************************************************* */
  /* *************************** Inputs do Usuario ********************************* */
   /* ******************************************************************************* */
-    async function getBotReply(input) {
-    const text = input.toLowerCase().trim();
-
-    if (text.startsWith("insumos") || text.startsWith("insumo")) {
-      const partes = text.split(" ");
-      const categoria = partes[1]; // pode ser undefined
-
-      return await buscarPorCategoria(categoria);
-    }
-
-    if (BOT_RESPONSES[text]) {
-      return await BOT_RESPONSES[text]();
-    }
-
-    return BOT_RESPONSES['default'](text);
-
+async function getBotReply(input) {
+  const text = input.toLowerCase().trim();
+  if (text.startsWith("insumos") || text.startsWith("insumo")) {
+    return await buscarPorCategoria(text.split(" ")[1]);
   }
+  if (text === "pedido novo") {
+    try {
+      const resposta = await iniciarSessaoBot();
+      state.modoOrcamento = true;
+      await tratarRespostaBot(resposta);
+      return null;
+    } catch (e) {
+      return "Erro ao iniciar o orçamento. Verifique se o servidor está rodando.";
+    }
+  }
+  if (BOT_RESPONSES[text]) return BOT_RESPONSES[text]();
+  return BOT_RESPONSES['default'](text);
+}
+
 
   /* ******************************************************************************* */
   /* ******************************************************************************* */
@@ -592,26 +612,39 @@ const BOT_RESPONSES = {
 
 
 /** Envia a mensagem do usuário e aciona a resposta do bot */
-function sendMessage() {
+async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
+  
   if (!text) return;
-
   if (!state.activeConvId) newConversation();
-
+  
   input.value = '';
   addUserMessage(text);
 
-  // 🔥 fluxo de orçamento
-  if (state.modoOrcamento) {
-    tratarFluxoOrcamento(text);
+  // Remove botões de opções anteriores se existirem
+  const opcoesDom = document.getElementById('opcoes-bot');
+  if (opcoesDom) opcoesDom.remove();
+
+  // --- LÓGICA DE DECISÃO ---
+
+  // 1. Se estiver no meio de um fluxo de orçamento com o backend
+  if (state.modoOrcamento && state.botSessionId) {
+    try {
+      const resposta = await enviarMensagemBot(text);
+      await tratarRespostaBot(resposta);
+    } catch (e) {
+      addBotMessage("Erro de comunicação com o servidor. Tente novamente.");
+    }
     return;
   }
 
-  // resposta normal do bot
+  // 2. Resposta normal do bot (Comandos locais ou início de pedido)
   setTimeout(async () => {
     const resposta = await getBotReply(text);
-    addBotMessage(resposta);
+    if (resposta !== null) {
+      addBotMessage(resposta);
+    }
   }, 600);
 }
 
@@ -710,4 +743,3 @@ function renderQuotePanel() {
 document.addEventListener('DOMContentLoaded', () => {
   newConversation();
 });
-
