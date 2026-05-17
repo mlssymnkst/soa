@@ -4,8 +4,23 @@ from flask import Flask, request, redirect, send_from_directory, session, jsonif
 from pymongo import MongoClient
 from bson import ObjectId
 import psycopg2, os
+import sys
+
+
+
+
+
+#da linha 6 ate a 23 são ccomandos para rodar o bot 
 
 app = Flask(__name__)
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
+
+sys.path.append(BACKEND_DIR)
+
+from bot_routes import bot_bp
 app.secret_key = 'segredo123'
 
 # conexão com PostgreSQL
@@ -13,7 +28,7 @@ conn = psycopg2.connect(
     host="localhost",
     database="lamore",
     user="postgres",
-    password="sql1501"
+    password="1234" #senha do seu postgree 1234
 )
 
 # conexão com o mongodb
@@ -72,10 +87,9 @@ def arquivos_login(arquivo):
     return send_from_directory(caminho, arquivo)
 
 # css bot 
-@app.route('/bot/<path:arquivo>')
+@app.route('/bot/static/<path:arquivo>') #arrumando o endereço da paginas
 def arquivos_bot(arquivo):
-    base = os.path.dirname(os.path.abspath(__file__))
-    caminho = os.path.join(base, '..', 'bot')
+    caminho = os.path.join(BASE_DIR, 'bot') #arrumando caminho para achar o arquivo
     return send_from_directory(caminho, arquivo)
 
 #imagem 
@@ -88,9 +102,10 @@ def imagens(arquivo):
 #chatbot
 @app.route('/chatbot')
 def chatbot():
-    base = os.path.dirname(os.path.abspath(__file__))
-    caminho = os.path.join(base, '..', 'bot')
-    return send_from_directory(caminho, 'chatbot.html')
+    return send_from_directory(
+        os.path.join(BASE_DIR, 'bot'), #CAMINHO PARA ACHAR O BOT
+        'chatbot.html'
+    )
 
 
 #para aparecer o nome em insumos
@@ -109,7 +124,7 @@ def login_session():
     result = cursor.fetchone()
 
     if result:
-        session['usuario'] = usuario  # 🔥 AQUI salva de verdade
+        session['usuario'] = usuario  #  AQUI salva 
         return redirect('/insumos')
     else:
         return "Login inválido"
@@ -264,5 +279,9 @@ def editar_insumos():
     return jsonify({
         "mensagem": "Produtos atualizados!"
     })
+
+app.register_blueprint(bot_bp) #DEPURAÇÃO PARA FUNCIONAR A LINHA 6 ATE A 23
+
+
 
 app.run(debug=True)
