@@ -28,7 +28,7 @@ conn = psycopg2.connect(
     host="localhost",
     database="lamore",
     user="postgres",
-    password="1234" #senha do seu postgree 1234
+    password="sql1501" #senha do seu postgree 1234
 )
 
 # conexão com o mongodb
@@ -282,6 +282,6 @@ def editar_insumos():
 
 app.register_blueprint(bot_bp) #DEPURAÇÃO PARA FUNCIONAR A LINHA 6 ATE A 23
 
-
+# MUDAR A PORTA DO CONNECT PARA NAO DAR ERRO DO LOCALHOST
 
 app.run(debug=True)
