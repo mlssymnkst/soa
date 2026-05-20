@@ -157,7 +157,7 @@ def adicionar_insumo():
 
         "id_visual": ultimo,
 
-        "modelo": dados.get("nome"),
+        "categoria": dados.get("nome"),
 
         "estoque_disponivel": int(dados.get("qtd")),
 
@@ -211,7 +211,7 @@ def api_insumos():
 
             "id_visual": item.get("id_visual"),
 
-            "nome": item.get("modelo"),
+            "nome": item.get("categoria", " ").replace("_", " "),
 
             "qtd": item.get("estoque_disponivel"),
 
@@ -269,7 +269,7 @@ def editar_insumos():
             },
             {
                 "$set": {
-                    "modelo": produto["nome"],
+                    "categoria": produto["nome"],
                     "estoque_disponivel": produto["qtd"],
                     "preco_venda": produto["valor"]
                 }
