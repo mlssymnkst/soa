@@ -25,10 +25,10 @@ app.secret_key = 'segredo123'
 
 # conexão com PostgreSQL
 conn = psycopg2.connect(
-    host="localhost",
-    database="lamore",
-    user="postgres",
-    password="sql1501" #senha do seu postgree 1234
+    
+   "postgresql://neondb_owner:npg_i7CL3QSUDstA@ep-lively-field-aqff4e2r-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+   #SALVO NO NEON 
 )
 
 # conexão com o mongodb
