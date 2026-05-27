@@ -25,10 +25,7 @@ app.secret_key = 'segredo123'
 
 # conexão com PostgreSQL
 conn = psycopg2.connect(
-    
-   "postgresql://neondb_owner:npg_i7CL3QSUDstA@ep-lively-field-aqff4e2r-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
-   #SALVO NO NEON 
+    "postgresql://neondb_owner:npg_i7CL3QSUDstA@ep-lively-field-aqff4e2r-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"#senha do seu postgree 1234
 )
 
 # conexão com o mongodb
@@ -157,7 +154,7 @@ def adicionar_insumo():
 
         "id_visual": ultimo,
 
-        "categoria": dados.get("nome"),
+        "modelo": dados.get("nome"),
 
         "estoque_disponivel": int(dados.get("qtd")),
 
@@ -211,7 +208,7 @@ def api_insumos():
 
             "id_visual": item.get("id_visual"),
 
-            "nome": item.get("categoria", " ").replace("_", " "),
+            "nome": item.get("modelo"),
 
             "qtd": item.get("estoque_disponivel"),
 
@@ -269,7 +266,7 @@ def editar_insumos():
             },
             {
                 "$set": {
-                    "categoria": produto["nome"],
+                    "modelo": produto["nome"],
                     "estoque_disponivel": produto["qtd"],
                     "preco_venda": produto["valor"]
                 }
