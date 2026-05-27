@@ -1,0 +1,5 @@
+flask
+gunicorn
+pymongo
+psycopg2-binary
+flask-cors
