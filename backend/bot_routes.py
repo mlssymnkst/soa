@@ -3,7 +3,17 @@ from bson import ObjectId
 import uuid
 import math
 from datetime import datetime
-from banco import insumos_collection, orcamentos_collection, produtos_collection
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+import os
+from flask import send_file
+from banco import (
+    insumos_collection,
+    orcamentos_collection,
+    produtos_collection,
+    clientes_collection
+)
+from routes.frete_routes import calcular_frete_melhor_envio
 
 bot_bp = Blueprint("bot", __name__)
 
@@ -15,7 +25,8 @@ _sessoes: dict = {}
 # ══════════════════════════════════════════════
 # UTILITÁRIOS  (definidos primeiro para evitar aviso do Pylance)
 # ══════════════════════════════════════════════
- 
+
+
 def is_sim(t: str) -> bool:
     return t.strip().lower() in {"sim", "s", "yes", "y", "1"}
  
@@ -69,13 +80,34 @@ def adicionais_placeholder():
  # *********************************
  # FUNÇÕES
  
-def listar_categorias_insumos() -> list:
-    try:
-        cats = insumos_collection.distinct("categoria")
-        return [c for c in cats if c]
-    except Exception:
-        return ["Convite", "Lenço", "Cardápio", "Tag", "Envelope"]
- 
+def listar_produtos_chatbot() -> list:
+
+    produtos = produtos_collection.find(
+        {"ativo": True},
+        {"nome": 1}
+    )
+
+    nomes = sorted(
+        list(
+            set(
+                p["nome"]
+                for p in produtos
+            )
+        )
+    )
+
+    print("PRODUTOS CHATBOT:", nomes)
+
+    if nomes:
+        return nomes
+
+    return [
+        "Convite Casamento Premium",
+        "Convite Floral Luxo",
+        "Tag Personalizada",
+        "Cardápio de Mesa"
+    ]
+    
 def listar_modelos(produto: str) -> list:
     try:
         return list(insumos_collection.find(
@@ -147,8 +179,28 @@ def proxima_mensagem(sid: str) -> dict:
     produto = s["produto_atual"].get("produto", "")
  
     prompts = {
+        "cadastrar_nome_cliente": {
+        "mensagem": "Informe o nome do cliente:",
+        "opcoes": []
+    },
+
+        "cadastrar_email_cliente": {
+        "mensagem": "Informe o e-mail do cliente:",
+        "opcoes": []
+    },
+
+        "cadastrar_endereco_cliente": {
+        "mensagem": "Informe o endereço do cliente:",
+        "opcoes": []
+    },
+
+        "pedir_telefone_cliente": {
+        "mensagem": "Informe o telefone do cliente:",
+        "opcoes": []
+    },
+
         "pedir_produto":    {"mensagem": "Qual o produto desejado?",
-                             "opcoes":   listar_categorias_insumos()},
+                             "opcoes":   listar_produtos_chatbot()},
 
         "pedir_quantidade": {"mensagem": "Qual a quantidade de unidades?", "opcoes": []},
 
@@ -232,19 +284,178 @@ def resumo_orcamento(sid: str) -> dict:
     return {"mensagem": "\n".join(linhas), "opcoes": ["Sim", "Não"]}
 
 # ══════════════════════════════════════════════
+# GERAR PDF
+# ══════════════════════════════════════════════
+def gerar_pdf_orcamento(orcamento_id, doc):
+    pasta = "pdfs"
+
+    if not os.path.exists(pasta):
+        os.makedirs(pasta)
+
+    caminho_pdf = os.path.join(pasta, f"orcamento_{orcamento_id}.pdf")
+
+    c = canvas.Canvas(caminho_pdf, pagesize=A4)
+    largura, altura = A4
+
+    y = altura - 50
+
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(50, y, "Orçamento - L'amore")
+    y -= 40
+
+    c.setFont("Helvetica", 11)
+    c.drawString(50, y, f"Cliente: {doc.get('clienteNome')}")
+    y -= 20
+    c.drawString(50, y, f"Endereço: {doc.get('endereco')}")
+    y -= 20
+    c.drawString(50, y, f"Status: {doc.get('status')}")
+    y -= 30
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, "Itens:")
+    y -= 25
+
+    c.setFont("Helvetica", 10)
+
+    for item in doc.get("itens", []):
+        c.drawString(50, y, f"Produto: {item.get('produto')}")
+        y -= 15
+        c.drawString(70, y, f"Quantidade: {item.get('quantidade')}")
+        y -= 15
+        c.drawString(70, y, f"Papel: {item.get('papel')}")
+        y -= 15
+        c.drawString(70, y, f"Envelope: {item.get('envelope')}")
+        y -= 15
+        c.drawString(70, y, f"Custo: R$ {item.get('custo_papel', 0)}")
+        y -= 25
+
+    frete = doc.get("frete", {})
+
+    c.setFont("Helvetica-Bold", 12)
+    c.drawString(50, y, f"Frete: R$ {frete.get('valor', 0)}")
+    y -= 20
+    c.drawString(50, y, f"Prazo: {frete.get('prazo_dias', 0)} dias")
+    y -= 25
+
+    c.drawString(50, y, f"Valor total: R$ {doc.get('valor_total', 0)}")
+
+    c.save()
+
+    return caminho_pdf
+
+# ══════════════════════════════════════════════
 # HANDLERS DE CADA ETAPA
 # ══════════════════════════════════════════════
+def h_cadastrar_nome_cliente(sid: str, txt: str) -> dict:
+    s = _sessoes[sid]
+
+    s["cliente_temp"]["nome"] = txt.strip()
+    s["etapa"] = "cadastrar_email_cliente"
+
+    return proxima_mensagem(sid)
+
+
+def h_cadastrar_email_cliente(sid: str, txt: str) -> dict:
+    s = _sessoes[sid]
+
+    s["cliente_temp"]["email"] = txt.strip()
+    s["etapa"] = "cadastrar_endereco_cliente"
+
+    return proxima_mensagem(sid)
+
+
+def h_cadastrar_endereco_cliente(sid: str, txt: str) -> dict:
+    s = _sessoes[sid]
+
+    s["cliente_temp"]["endereco"] = txt.strip()
+
+    novo_cliente = {
+        "nome": s["cliente_temp"]["nome"],
+        "telefone": s["cliente_temp"]["telefone"],
+        "email": s["cliente_temp"]["email"],
+        "endereco": s["cliente_temp"]["endereco"],
+        "tipoCliente": "comum",
+        "dataCadastro": datetime.utcnow()
+    }
+
+    result = clientes_collection.insert_one(novo_cliente)
+
+    s["cliente"] = {
+        "clienteId": str(result.inserted_id),
+        "nome": novo_cliente["nome"],
+        "telefone": novo_cliente["telefone"]
+    }
+
+    s.pop("cliente_temp", None)
+
+    s["etapa"] = "pedir_produto"
+
+    return {
+        "mensagem": f"Cliente {novo_cliente['nome']} cadastrado com sucesso.\n\nQual o produto desejado?",
+        "opcoes": listar_produtos_chatbot()
+    }
+
+def h_telefone_cliente(sid: str, txt: str) -> dict:
+
+
+    s = _sessoes[sid]
+
+    cliente = clientes_collection.find_one({
+        "telefone": txt.strip()
+    })
+
+    if not cliente:
+        s["cliente_temp"] = {
+            "telefone": txt.strip()
+        }
+
+        s["etapa"] = "cadastrar_nome_cliente"
+
+        return {
+            "mensagem": "Cliente não encontrado. Informe o nome do cliente para cadastro:",
+            "opcoes": []
+    }
+
+    s["cliente"] = {
+        "clienteId": str(cliente["_id"]),
+        "nome": cliente["nome"],
+        "telefone": cliente["telefone"]
+    }
+
+    print("CLIENTE DA SESSAO:", s["cliente"])
+
+    s["etapa"] = "pedir_produto"
+
+    return {
+        "mensagem": f"Cliente encontrado: {cliente['nome']}.\n\nQual o produto desejado?",
+        "opcoes": listar_produtos_chatbot()
+    }
+
  
 def h_produto(sid: str, txt: str) -> dict:
-    s        =_sessoes[sid]
-    produtos = listar_categorias_insumos()
-    match    = casar(txt, produtos)
+    s = _sessoes[sid]
+
+    produtos = listar_produtos_chatbot()
+    match = casar(txt, produtos)
+
     if not match:
-        return {"mensagem": "Produto não encontrado. Escolha um da lista:", "opcoes": produtos}
-    s["produto_atual"] = {"produto": match}
-    s["etapa"]         = "pedir_quantidade"
+        return {
+            "mensagem": "Produto não encontrado. Escolha um da lista:",
+            "opcoes": produtos
+        }
+
+    produto_doc = produtos_collection.find_one({
+        "nome": match
+    })
+
+    s["produto_atual"] = {
+        "produto": match,
+        "produtoId": str(produto_doc["_id"]) if produto_doc else None
+    }
+
+    s["etapa"] = "pedir_quantidade"
+
     return proxima_mensagem(sid)
- 
  
 def h_quantidade(sid: str, txt: str) -> dict:
     s =_sessoes[sid]
@@ -403,7 +614,8 @@ def h_mais_produto(sid: str, txt: str) -> dict:
     if is_sim(txt):
         s["produto_atual"] = {}
         s["etapa"]         = "pedir_produto"
-        return {"mensagem": "Ótimo! Qual o próximo produto?", "opcoes": listar_categorias_insumos()}
+        return {"mensagem": "Ótimo! Qual o próximo produto?", 
+                "opcoes": listar_produtos_chatbot()}
     elif is_nao(txt):
         s["etapa"] = "pedir_finalizacao"
         return resumo_orcamento(sid)
@@ -443,11 +655,22 @@ def h_endereco(sid: str, txt: str) -> dict:
     s["endereco"] = txt
     subtotal   = sum(i.get("custo_papel", 0) + i.get("custo_fita", 0) for i in s["itens"])
     peso_total = sum(i.get("peso_g", 0) for i in s["itens"])
-    frete      = calcular_frete(subtotal, peso_total, txt)
+    #frete      = calcular_frete(subtotal, peso_total, txt)
+    frete = calcular_frete_melhor_envio(
+        cep_origem="01001000",
+        cep_destino="01018020",
+        largura=20,
+        altura=5,
+        comprimento=25,
+        peso=max(peso_total / 1000, 0.3),
+        valor_seguro=subtotal
+    )
     valor_total = round(subtotal + frete["valor"], 2)
     s["frete"]       = frete
     s["valor_total"] = valor_total
     doc = {
+        "clienteId": s["cliente"]["clienteId"],
+        "clienteNome": s["cliente"]["nome"],
         "session_id":  sid,
         "itens":       s["itens"],
         "endereco":    txt,
@@ -456,8 +679,15 @@ def h_endereco(sid: str, txt: str) -> dict:
         "criado_em":   datetime.utcnow().isoformat(),
         "status":      "finalizado",
     }
+
     result       = orcamentos_collection.insert_one(doc)
     orcamento_id = str(result.inserted_id)
+    caminho_pdf = gerar_pdf_orcamento(orcamento_id, doc)
+    cliente = clientes_collection.find_one({
+    "_id": ObjectId(s["cliente"]["clienteId"])
+})
+
+    cliente_email = cliente.get("email") if cliente else None
     itens_painel = [
         {
             "titulo":     item["produto"],
@@ -473,20 +703,22 @@ def h_endereco(sid: str, txt: str) -> dict:
         "mensagem": (
             f"🚚 *Frete*: R$ {frete['valor']:.2f} | Prazo: {frete['prazo_dias']} dias úteis\n"
             f"💰 *Total com frete*: R$ {valor_total:.2f}\n\n"
-            f"✅ Orçamento #{orcamento_id[:8].upper()} gerado e salvo com sucesso!"
+            f"✅ Orçamento #{orcamento_id[:8].upper()} gerado e salvo com sucesso!\n"
         ),
         "opcoes":       [],
         "acao":         "orcamento_gerado",
         "orcamento_id": orcamento_id,
-        "itens_painel": itens_painel,
         "valor_total":  valor_total,
         "frete":        frete,
+        "pdf": caminho_pdf
     }
+
 # ══════════════════════════════════════════════
 # MOTOR DO FLUXO
 # ══════════════════════════════════════════════
  
 DESPACHO = {
+    "pedir_telefone_cliente": h_telefone_cliente,
     "pedir_produto":     h_produto,
     "pedir_quantidade":  h_quantidade,
     "tem_modelo":        h_tem_modelo,
@@ -501,6 +733,9 @@ DESPACHO = {
     "pedir_finalizacao": h_finalizacao,
     "pedir_endereco":    h_endereco,
     "devolver_insumos":  h_devolver,
+    "cadastrar_nome_cliente": h_cadastrar_nome_cliente,
+    "cadastrar_email_cliente": h_cadastrar_email_cliente,
+    "cadastrar_endereco_cliente": h_cadastrar_endereco_cliente,
 }
  
 def processar(sid: str, txt: str) -> dict:
@@ -517,7 +752,8 @@ def processar(sid: str, txt: str) -> dict:
 def iniciar_sessao():   
     sid = str(uuid.uuid4())
     _sessoes[sid] = {
-        "etapa":         "pedir_produto",
+        "etapa":         "pedir_telefone_cliente",
+        "cliente": None,
         "produto_atual": {},
         "itens":         [],
         "endereco":      None,
@@ -550,3 +786,23 @@ def encerrar():
     sid  = data.get("session_id")
     _sessoes.pop(sid, None)
     return jsonify({"mensagem": "Sessão encerrada."})
+
+# ══════════════════════════════════════════════
+# ROTA: Baixar PDF
+# ══════════════════════════════════════════════
+
+@bot_bp.route("/bot/pdf/<orcamento_id>", methods=["GET"])
+def baixar_pdf(orcamento_id):
+    caminho_pdf = os.path.join("pdfs", f"orcamento_{orcamento_id}.pdf")
+
+    if not os.path.exists(caminho_pdf):
+        return jsonify({
+            "erro": "PDF não encontrado"
+        }), 404
+
+    return send_file(
+        caminho_pdf,
+        as_attachment=True,
+        download_name=f"orcamento_{orcamento_id}.pdf"
+    )
+ 

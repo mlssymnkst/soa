@@ -14,8 +14,10 @@ const state = {
   deletedConvs:   {},   // — lixeira temporária
 
 /* Fluxo de orçamento */
-  modoOrcamento:  false,
-  botSessionId:   null,
+  modoConsultaCliente: false,
+  modoOrcamento: false,
+  modoConsultaOrcamento: false,
+  botSessionId: null,
   etapaOrcamento: null,
   dadosOrcamento: {}
 };
@@ -74,6 +76,7 @@ async function buscarPorCategoria(categoria){
 API ORÇAMENTO
 ──────────────────────────────────────────────── */
 
+
 // Inicia uma nova sessão de orçamento dentro do backend
 
 async function iniciarSessaoBot() {
@@ -96,42 +99,78 @@ async function enviarMensagemBot(texto) {
   // retorna: { mensagem, opcoes, acao?, item?, itens_painel?, orcamento_id?, valor_total?, frete? }
 }
 
+//══════════════════════════════════════════════
+// EMAILL AUTOMÁTICO
+// ══════════════════════════════════════════════
+
+function enviarEmailCliente(emailCliente) {
+  const assunto = encodeURIComponent("Orçamento L'amore");
+
+  const corpo = encodeURIComponent(
+    "Olá!\n\nSegue o orçamento solicitado.\n\nAtenciosamente,\nL'amore"
+  );
+
+  window.location.href =
+    `mailto:${emailCliente}?subject=${assunto}&body=${corpo}`;
+}
+
+
 /** Processa a resposta do backend e age sobre a UI */
 async function tratarRespostaBot(resposta) {
   if (resposta.erro) {
     addBotMessage("Erro:" + resposta.erro);
     return;
   }
+
   if (resposta.mensagem) {
-  addBotMessage(resposta.mensagem);}
+    addBotMessage(resposta.mensagem);
+  }
 
-// Renderizor botões
-if (resposta.opcoes && resposta.opcoes.length) {
-  renderOpcoes(resposta.opcoes);
-}
+  if (resposta.opcoes && resposta.opcoes.length) {
+    renderOpcoes(resposta.opcoes);
+  }
 
-// Item confirmado -> painel
-if (resposta.acao === "item_adicionado" && resposta.item){
-  const item = resposta.item;
-  addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
-}
+  if (resposta.acao === "item_adicionado" && resposta.item) {
+    const item = resposta.item;
 
-//Orçamento gerado 
-//Atualiza o painel com os itens e exibe o total
+    addQuoteItem(
+      item.titulo,
+      item.papel,
+      item.envelope,
+      item.quantidade,
+      item.fita,
+      item.custo
+    );
+  }
+
   if (resposta.acao === "orcamento_gerado") {
     if (resposta.itens_painel) {
-      if (state.activeConvId) state.convQuoteItems[state.activeConvId] = [];
       resposta.itens_painel.forEach(item => {
-        addQuoteItem(item.titulo, item.papel, item.embalagem, item.quantidade, item.fita, item.custo);
+        addQuoteItem(
+          item.titulo,
+          item.papel,
+          item.envelope,
+          item.quantidade,
+          item.fita,
+          item.custo
+        );
       });
     }
-    addTotalAoPanel(resposta.valor_total, resposta.frete);  // FIX 5: estava fora do if
+
     state.modoOrcamento = false;
-    state.botSessionId  = null;
+    state.botSessionId = null;
+
+    if (resposta.orcamento_id) {
+      window.open(
+        `${BASE_URL}/bot/pdf/${resposta.orcamento_id}`,
+        "_blank"
+      );
+    }
   }
+
   if (resposta.acao === "encerrado") {
     state.modoOrcamento = false;
-    state.botSessionId  = null;
+    state.botSessionId = null;
   }
 }
 
@@ -158,6 +197,37 @@ function renderOpcoes(opcoes) {
  
   document.getElementById('messages').appendChild(wrap);
   document.getElementById('messages').scrollTop = 99999;
+}
+
+//Mostrar Orçamento
+function mostrarAcoesOrcamento(orcamentoId) {
+  const existing = document.getElementById("acoes-orcamento");
+  if (existing) existing.remove();
+
+  const container = document.getElementById("messages");
+
+  const wrap = document.createElement("div");
+  wrap.id = "acoes-orcamento";
+  wrap.className = "opcoes-bot-wrap";
+
+  const btnPdf = document.createElement("button");
+  btnPdf.type = "button";
+  btnPdf.className = "opcao-btn";
+  btnPdf.textContent = "📄 Baixar PDF";
+
+  btnPdf.onclick = (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  window.open(
+    `${BASE_URL}/bot/pdf/${orcamentoId}`,
+    "_blank"
+  );
+};
+
+  wrap.appendChild(btnPdf);
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
 }
 /* ════════════════════════════════════════════════
    MENU LATERAL (SIDEBAR)
@@ -206,10 +276,16 @@ function newConversation() {
     'Olá! 👋 Sou o Assistente Virtual da Lamore!\n\n' +
     'Estou aqui para ajudar você a gerenciar nossos produtos!\n\n' +
     '📋 Comandos disponíveis:\n' +
-    '• "buscar [nome]" – procurar produtos\n' +
+
     '• "pedido novo" – criar novo pedido\n' +
-    '• "ajuda" – ver todos os comandos\n' +
-    'O que você precisa hoje?'
+    '• "buscar [nome]" – procurar produtos\n' +
+    '• "consultar orçamento" — buscar orçamentos por telefone\n' +
+    '• "consultar cliente" — buscar cliente por telefone\n' +
+    '• "produtos" — listar produtos disponíveis\n' +
+    '• "resumo" — ver itens do orçamento\n' +
+    '• "ajuda" – ver todos os comandos\n\n' +
+
+    'O que você precisa hoje?\n\n'
   );
 }
 
@@ -538,49 +614,77 @@ function renderOpcoes(opcoes) {
 /* ════════════════════════════════════════════════
    LÓGICA DE RESPOSTAS DO BOT
 ════════════════════════════════════════════════ */
-
 const BOT_RESPONSES = {
+  'consultar orçamento': async () => {
+  state.modoConsultaOrcamento = true;
+  return 'Informe o telefone do cliente para consultar os orçamentos:';
+},
+
+  'consultar cliente': async () => {
+  state.modoConsultaCliente = true;
+  return 'Informe o telefone do cliente para consulta:';
+},
+
   'ajuda': () =>
     'Comandos disponíveis:\n' +
     '• "Insumo (nome do insumo)" – procurar produto\n' +
     '• "pedido novo" – criar pedido\n' +
-    '• "estoque(código)" – verificar estoque\n' +
-    '• "categoria(tipo)" – listar categoria\n' +
-    '• "preço(código)" – consultar preço\n' +
     '• "resumo" – ver itens do orçamento\n' +
-    '• "convites" – listar convites',
+    '• "produtos" – listar produtos',
 
   'resumo': () =>
     activeQuoteItems().length
       ? `Seu orçamento tem ${activeQuoteItems().length} item(ns). Confira no painel ao lado.`
       : 'Seu orçamento está vazio. Use "pedido novo" para adicionar itens.',
-      
-  'produtos': () => {
-    addQuoteItem('Convite Clássico', 'Papel A4', 'Esmeralda', 500, 'conv-' + (state.quoteCounter + 1));
-    return 'Listando convites disponíveis! Adicionei um item de exemplo ao orçamento.';
-  },
 
+  'produtos': async () => {
+  const res = await fetch(`${BASE_URL}/produtos`);
+  const produtos = await res.json();
 
-  /* FUNÇÃO DE PEDIDO NOVO */
-  'pedido novo': () => {
+  if (!produtos.length) {
+    return 'Nenhum produto cadastrado.';
+  }
+
+  let texto = '📦 Produtos disponíveis:\n\n';
+
+  produtos.forEach(p => {
+    texto +=
+      `• ${p.nome}\n` +
+      `  Preço base: R$ ${p.precoBase}\n` +
+      `  Status: ${p.ativo ? 'Ativo' : 'Inativo'}\n\n`;
+  });
+
+  return texto;
+},
+
+  'pedido novo': async () => {
+    const resposta = await iniciarSessaoBot();
+
     state.modoOrcamento = true;
-    state.etapaOrcamento = "categoria";
-    state.dadosOrcamento = {};
 
-    return "Vamos criar um orçamento. Informe a categoria do insumo:";
+    await tratarRespostaBot(resposta);
+
+    return null;
   },
-  
+
   'default': (input) => {
     if (input.startsWith('buscar ')) {
       const term = input.replace('buscar ', '');
-      addQuoteItem('Produto: ' + term, 'Papel A4', 'Personalizado', 50, 'conv-' + (state.quoteCounter + 1));
+
+      addQuoteItem(
+        'Produto: ' + term,
+        'Papel A4',
+        'Envelope Personalizado',
+        50,
+        'Nenhuma',
+        0
+      );
+
       return `Busquei por "${term}". Um item foi adicionado ao orçamento para sua revisão.`;
     }
-    if (input.startsWith('preço(')) {
-      return `Preço do produto ${input}: R$ 2,50/unidade (pedido mínimo 50 unidades).`;
-    }
+
     return 'Não reconheci o comando. Digite "ajuda" para ver os comandos disponíveis.';
-  },
+  }
 };
 
   /* ******************************************************************************* */
@@ -588,21 +692,21 @@ const BOT_RESPONSES = {
   /* ******************************************************************************* */
 async function getBotReply(input) {
   const text = input.toLowerCase().trim();
+
   if (text.startsWith("insumos") || text.startsWith("insumo")) {
-    return await buscarPorCategoria(text.split(" ")[1]);
+    const categoria = text
+      .replace("insumos", "")
+      .replace("insumo", "")
+      .trim();
+
+    return await buscarPorCategoria(categoria);
   }
-  if (text === "pedido novo") {
-    try {
-      const resposta = await iniciarSessaoBot();
-      state.modoOrcamento = true;
-      await tratarRespostaBot(resposta);
-      return null;
-    } catch (e) {
-      return "Erro ao iniciar o orçamento. Verifique se o servidor está rodando.";
-    }
+
+  if (BOT_RESPONSES[text]) {
+    return await BOT_RESPONSES[text]();
   }
-  if (BOT_RESPONSES[text]) return BOT_RESPONSES[text]();
-  return BOT_RESPONSES['default'](text);
+
+  return BOT_RESPONSES["default"](text);
 }
 
 
@@ -612,42 +716,107 @@ async function getBotReply(input) {
 
 
 /** Envia a mensagem do usuário e aciona a resposta do bot */
-async function sendMessage() {
-  const input = document.getElementById('chatInput');
+async function sendMessage(event) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  const input = document.getElementById("chatInput");
   const text = input.value.trim();
-  
+
   if (!text) return;
+
   if (!state.activeConvId) newConversation();
-  
-  input.value = '';
+
+  input.value = "";
   addUserMessage(text);
 
-  // Remove botões de opções anteriores se existirem
-  const opcoesDom = document.getElementById('opcoes-bot');
+  const opcoesDom = document.getElementById("opcoes-bot");
   if (opcoesDom) opcoesDom.remove();
 
-  // --- LÓGICA DE DECISÃO ---
+  if (state.modoConsultaOrcamento) {
+    state.modoConsultaOrcamento = false;
 
-  // 1. Se estiver no meio de um fluxo de orçamento com o backend
+    const telefone = text.trim();
+    const resCliente = await fetch(`${BASE_URL}/clientes/telefone/${telefone}`);
+
+    if (!resCliente.ok) {
+      addBotMessage("Cliente não encontrado.");
+      return;
+    }
+
+    const cliente = await resCliente.json();
+
+    const resOrcamentos = await fetch(`${BASE_URL}/orcamentos`);
+    const orcamentos = await resOrcamentos.json();
+
+    const encontrados = orcamentos.filter(o => o.clienteId === cliente._id);
+
+    if (!encontrados.length) {
+      addBotMessage(`Nenhum orçamento encontrado para ${cliente.nome}.`);
+      return;
+    }
+
+    const texto = encontrados.slice(-3).map(o => {
+      return `📄 Orçamento: ${o._id}
+Cliente: ${o.clienteNome || cliente.nome}
+Valor: R$ ${o.valor_total || o.valor_final}
+Status: ${o.status || 'registrado'}`;
+    }).join('\n\n');
+
+    addBotMessage(texto);
+    return;
+  }
+
+  if (state.modoConsultaCliente) {
+    state.modoConsultaCliente = false;
+
+    const telefone = text.trim();
+    const resCliente = await fetch(`${BASE_URL}/clientes/telefone/${telefone}`);
+
+    if (!resCliente.ok) {
+      addBotMessage("Cliente não encontrado.");
+      return;
+    }
+
+    const cliente = await resCliente.json();
+
+    const texto =
+      `👤 Cliente encontrado:\n` +
+      `Nome: ${cliente.nome}\n` +
+      `Telefone: ${cliente.telefone}\n` +
+      `E-mail: ${cliente.email || 'Não informado'}\n` +
+      `Endereço: ${cliente.endereco || 'Não informado'}\n` +
+      `Tipo: ${cliente.tipoCliente || 'comum'}`;
+
+    addBotMessage(texto);
+    return;
+  }
+
   if (state.modoOrcamento && state.botSessionId) {
     try {
       const resposta = await enviarMensagemBot(text);
       await tratarRespostaBot(resposta);
     } catch (e) {
+      console.error(e);
       addBotMessage("Erro de comunicação com o servidor. Tente novamente.");
     }
+
     return;
   }
 
-  // 2. Resposta normal do bot (Comandos locais ou início de pedido)
-  setTimeout(async () => {
-    const resposta = await getBotReply(text);
-    if (resposta !== null) {
-      addBotMessage(resposta);
-    }
-  }, 600);
-}
+  const resposta = await getBotReply(text);
 
+  if (resposta !== null) {
+    addBotMessage(resposta);
+  }
+}
 /** Envia a mensagem do usuário e aciona a resposta do bot */
 
 /* ════════════════════════════════════════════════
@@ -655,13 +824,18 @@ async function sendMessage() {
 ════════════════════════════════════════════════ */
 
 /** Adiciona novo item de orçamento na conversa ativa */
-function addQuoteItem(title, papel, cor, qty, code) {
+function addQuoteItem(title, papel, envelope, qty, fita, custo) {
   if (!state.activeConvId) return;
   state.quoteCounter++;
   if (!state.convQuoteItems[state.activeConvId]) state.convQuoteItems[state.activeConvId] = [];
   state.convQuoteItems[state.activeConvId].unshift({
     id: state.quoteCounter,
-    title, papel, cor, qty, code,
+    title, 
+    papel,
+    envelope,
+    qty,
+    fita,
+    custo,
     status: 'pendente',
   });
   renderQuotePanel();
@@ -722,7 +896,8 @@ function renderQuotePanel() {
       <div class="quote-card-body">
         <div class="quote-title">${item.title}</div>
         <div class="quote-detail"><span class="${iconCls}">${icon}</span> ${item.papel}</div>
-        <div class="quote-detail"><span class="${iconCls}">${icon}</span> Cor ${item.cor}</div>
+        <div class="quote-detail"><span class="${iconCls}">${icon}</span> Envelope: ${item.envelope}</div>
+        <div class="quote-detail"><span class="${iconCls}">${icon}</span> Custo: R$ ${item.custo}</div> 
         <div class="quote-detail"><span class="${iconCls}">${icon}</span> Quantidade: ${item.qty}</div>
         <div class="status-label ${item.status}">
           ${item.status === 'pendente' ? 'Aguardando...' : LABELS[item.status]}

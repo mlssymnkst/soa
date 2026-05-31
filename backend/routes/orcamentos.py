@@ -3,6 +3,7 @@ from banco import orcamentos_collection, insumos_collection
 from bson import ObjectId
 from datetime import datetime, timezone
 import math 
+from banco import clientes_collection
 
 orcamentos_bp = Blueprint("orcamentos", __name__)
 
@@ -29,6 +30,7 @@ def criar_orcamentos():
         }), 400
     
     campos_obrigatorios = [
+        "clienteId",
         "categoria", 
         "quantidade_convites",
         "largura_folha",
@@ -42,6 +44,27 @@ def criar_orcamentos():
             return jsonify({
                 "erro": f"Campo obrigatório: {campo}"
             }), 400
+    
+    # Valida cliente
+
+    try:
+
+        cliente = clientes_collection.find_one({
+            "_id": ObjectId(data["clienteId"])
+        })
+
+    except:
+
+        return jsonify({
+            "erro": "clienteId inválido"
+        }), 400
+
+
+    if not cliente:
+
+        return jsonify({
+            "erro": "Cliente não encontrado"
+    }), 404
         
     categoria = data["categoria"]
     quantidade_convites = data["quantidade_convites"]
@@ -59,8 +82,11 @@ def criar_orcamentos():
         }), 400
     
     insumo = insumos_collection.find_one({
-        "categoria" : data["categoria"]
-    })
+    "categoria": {
+        "$regex": f"^{data['categoria']}$",
+        "$options": "i"
+    }
+})
 
     if not insumo:
         return jsonify({
@@ -90,7 +116,7 @@ def criar_orcamentos():
 
     if folhas_necessarias > estoque_disponivel:
         return jsonify({
-            "err": "Estoque insuficiente",
+            "erro": "Estoque insuficiente",
             "estoque_disponivel": estoque_disponivel,
             "necessario": folhas_necessarias
         }), 400
@@ -105,22 +131,41 @@ def criar_orcamentos():
     estoque_restante = estoque_disponivel - folhas_necessarias
 
     orcamento = {
-        "categoria": categoria.lower(),
-        "quantidade_convites": quantidade_convites,
-        "aproveitamento": aproveitamento,
-        "folhas_necessarias": folhas_necessarias,
-        "preco_unitario_folha": preco_unitario,
-        "custo_total": custo_total,
-        "margem_lucro": margem_lucro,
-        "valor_final": valor_final,
-        "estoque_restante": estoque_restante,
-        "data_criacao": datetime.now(timezone.utc) 
-    }
+    "clienteId": data["clienteId"],
+    "clienteNome": cliente["nome"],
+
+    "categoria": categoria.lower(),
+    "modelo": insumo.get("modelo"),
+
+    "quantidade_convites": quantidade_convites,
+
+    "largura_folha": largura_folha,
+    "altura_folha": altura_folha,
+
+    "largura_impressao": largura_impressao,
+    "altura_impressao": altura_impressao,
+
+    "margem": margem,
+    "sangria": sangria,
+
+    "aproveitamento": aproveitamento,
+    "folhas_necessarias": folhas_necessarias,
+
+    "preco_unitario_folha": preco_unitario,
+    "custo_total": custo_total,
+
+    "margem_lucro": margem_lucro,
+    "valor_final": valor_final,
+
+    "estoque_restante": estoque_restante,
+
+    "data_criacao": datetime.now(timezone.utc)
+}
 
     result = orcamentos_collection.insert_one(orcamento)
 
     return jsonify({
-        "msg": "Orçaemento criado com sucesso",
+        "msg": "Orçamento criado com sucesso",
         "id": str(result.inserted_id),
         "orcamento":{
             "custo_total": custo_total,
