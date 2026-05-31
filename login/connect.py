@@ -31,7 +31,7 @@ conn = psycopg2.connect(
 # conexão MongoDB
 mongo_client = MongoClient("mongodb://localhost:27017/")
 
-mongo_db = mongo_client["soa"]
+mongo_db = mongo_client["SOA"]
 
 colecao_insumos = mongo_db["insumos"]
 

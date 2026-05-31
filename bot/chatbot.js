@@ -142,7 +142,7 @@ async function tratarRespostaBot(resposta) {
       item.custo
     );
   }
-}
+
 //Orçamento gerado 
 //Atualiza o painel com os itens e exibe o total
  if (resposta.acao === "orcamento_gerado") {
@@ -163,7 +163,7 @@ async function tratarRespostaBot(resposta) {
     });
   }
 
-  addTotalAoPanel(resposta.valor_total, resposta.frete);
+  //addTotalAoPanel(resposta.valor_total, resposta.frete); ESSA LINHA NO MOMENTO NÃO FUNCIONA 
 
   if (resposta.pdf_url) {
     addBotMessage(
@@ -174,7 +174,7 @@ async function tratarRespostaBot(resposta) {
   state.modoOrcamento = false;
   state.botSessionId = null;
 }
-
+}
 // Render Mensagens
 function renderOpcoes(opcoes) {
   const existing = document.getElementById('opcoes-bot');
