@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from banco import clientes_collection
+from backend.banco import clientes_collection #caminho para pasta 
 from bson import ObjectId
 from datetime import datetime
 

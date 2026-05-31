@@ -142,36 +142,37 @@ async function tratarRespostaBot(resposta) {
       item.custo
     );
   }
+}
+//Orçamento gerado 
+//Atualiza o painel com os itens e exibe o total
+ if (resposta.acao === "orcamento_gerado") {
 
-  if (resposta.acao === "orcamento_gerado") {
-    if (resposta.itens_painel) {
-      resposta.itens_painel.forEach(item => {
-        addQuoteItem(
-          item.titulo,
-          item.papel,
-          item.envelope,
-          item.quantidade,
-          item.fita,
-          item.custo
-        );
-      });
-    }
+  if (resposta.itens_painel) {
+    if (state.activeConvId)
+      state.convQuoteItems[state.activeConvId] = [];
 
-    state.modoOrcamento = false;
-    state.botSessionId = null;
-
-    if (resposta.orcamento_id) {
-      window.open(
-        `${BASE_URL}/bot/pdf/${resposta.orcamento_id}`,
-        "_blank"
+    resposta.itens_painel.forEach(item => {
+      addQuoteItem(
+        item.titulo,
+        item.papel,
+        item.embalagem,
+        item.quantidade,
+        item.fita,
+        item.custo
       );
-    }
+    });
   }
 
-  if (resposta.acao === "encerrado") {
-    state.modoOrcamento = false;
-    state.botSessionId = null;
+  addTotalAoPanel(resposta.valor_total, resposta.frete);
+
+  if (resposta.pdf_url) {
+    addBotMessage(
+      `📄 PDF gerado!\n\n<a href="${BASE_URL}${resposta.pdf_url}" target="_blank">Clique aqui para baixar</a>`
+    );
   }
+
+  state.modoOrcamento = false;
+  state.botSessionId = null;
 }
 
 // Render Mensagens

@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 import psycopg2, os
 import sys
+from flask_cors import CORS
 
 
 
@@ -16,11 +17,9 @@ app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
+sys.path.append(BASE_DIR)
 
-sys.path.append(BACKEND_DIR)
-
-from bot_routes import bot_bp
+from backend.bot_routes import bot_bp
 app.secret_key = 'segredo123'
 
 # conexão com PostgreSQL
@@ -281,4 +280,5 @@ app.register_blueprint(bot_bp) #DEPURAÇÃO PARA FUNCIONAR A LINHA 6 ATE A 23
 
 # MUDAR A PORTA DO CONNECT PARA NAO DAR ERRO DO LOCALHOST
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run()

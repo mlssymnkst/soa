@@ -7,13 +7,13 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 import os
 from flask import send_file
-from banco import (
+from backend.banco import ( #caminho do pasta backend
     insumos_collection,
     orcamentos_collection,
     produtos_collection,
     clientes_collection
 )
-from routes.frete_routes import calcular_frete_melhor_envio
+from backend.routes.frete_routes import calcular_frete_melhor_envio
 
 bot_bp = Blueprint("bot", __name__)
 

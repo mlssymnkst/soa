@@ -1,9 +1,9 @@
 from flask import Blueprint, request, jsonify
-from banco import orcamentos_collection, insumos_collection
+from backend.banco import orcamentos_collection, insumos_collection
 from bson import ObjectId
 from datetime import datetime, timezone
 import math 
-from banco import clientes_collection
+from backend.banco import clientes_collection #caminho para pasta 
 
 orcamentos_bp = Blueprint("orcamentos", __name__)
 
