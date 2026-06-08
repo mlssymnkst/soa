@@ -15,14 +15,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 sys.path.append(BASE_DIR)
 
-<<<<<<< HEAD
-sys.path.append(BACKEND_DIR)
-
-from bot_routes import bot_bp
-
-=======
 from backend.bot_routes import bot_bp
->>>>>>> c4ebea7d3d4ade648c635e5f433a3e3818b66739
 app.secret_key = 'segredo123'
 app.register_blueprint(bot_bp)
 
