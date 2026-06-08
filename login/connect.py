@@ -6,10 +6,6 @@ from bson import ObjectId
 import psycopg2, os
 import sys
 
-
-
-
-
 #da linha 6 ate a 23 são ccomandos para rodar o bot 
 
 app = Flask(__name__)
@@ -21,7 +17,9 @@ BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
 sys.path.append(BACKEND_DIR)
 
 from bot_routes import bot_bp
+
 app.secret_key = 'segredo123'
+app.register_blueprint(bot_bp)
 
 # conexão com PostgreSQL
 conn = psycopg2.connect(
@@ -277,7 +275,6 @@ def editar_insumos():
         "mensagem": "Produtos atualizados!"
     })
 
-app.register_blueprint(bot_bp) #DEPURAÇÃO PARA FUNCIONAR A LINHA 6 ATE A 23
 
 # MUDAR A PORTA DO CONNECT PARA NAO DAR ERRO DO LOCALHOST
 
