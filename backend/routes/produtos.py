@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from banco import produtos_collection, tipos_produto_collection
+from backend.banco import produtos_collection, tipos_produto_collection #caminho para pasta
 from bson import ObjectId
 
 produtos_bp = Blueprint("produtos", __name__)

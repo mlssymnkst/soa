@@ -5,6 +5,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 import psycopg2, os
 import sys
+from flask_cors import CORS
 
 #da linha 6 ate a 23 são ccomandos para rodar o bot 
 
@@ -12,12 +13,16 @@ app = Flask(__name__)
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
+sys.path.append(BASE_DIR)
 
+<<<<<<< HEAD
 sys.path.append(BACKEND_DIR)
 
 from bot_routes import bot_bp
 
+=======
+from backend.bot_routes import bot_bp
+>>>>>>> c4ebea7d3d4ade648c635e5f433a3e3818b66739
 app.secret_key = 'segredo123'
 app.register_blueprint(bot_bp)
 
@@ -30,7 +35,7 @@ conn = psycopg2.connect(
 # conexão MongoDB
 mongo_client = MongoClient("mongodb://localhost:27017/")
 
-mongo_db = mongo_client["soa"]
+mongo_db = mongo_client["SOA"]
 
 colecao_insumos = mongo_db["insumos"]
 
@@ -278,4 +283,5 @@ def editar_insumos():
 
 # MUDAR A PORTA DO CONNECT PARA NAO DAR ERRO DO LOCALHOST
 
-app.run(debug=True)
+if __name__ == "__main__":
+    app.run()
