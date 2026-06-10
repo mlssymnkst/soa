@@ -72,6 +72,8 @@ def insumos():
     return html
 
 
+
+
 #CSS
 @app.route('/login/<path:arquivo>')
 def arquivos_login(arquivo):
@@ -214,6 +216,8 @@ def api_insumos():
         contador += 1
 
     return jsonify(produtos)
+
+
 
 #RESTRIÇÃO DE PRODUTOS
 def usuario_admin():

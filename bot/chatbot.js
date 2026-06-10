@@ -277,11 +277,8 @@ function newConversation() {
     'Olá! 👋 Sou o Assistente Virtual da Lamore!\n\n' +
     'Estou aqui para ajudar você a gerenciar nossos produtos!\n\n' +
     '📋 Comandos disponíveis:\n' +
-
     '• "pedido novo" – criar novo pedido\n' +
     '• "buscar [nome]" – procurar produtos\n' +
-    '• "consultar orçamento" — buscar orçamentos por telefone\n' +
-    '• "consultar cliente" — buscar cliente por telefone\n' +
     '• "produtos" — listar produtos disponíveis\n' +
     '• "resumo" — ver itens do orçamento\n' +
     '• "ajuda" – ver todos os comandos\n\n' +
@@ -421,16 +418,80 @@ function updateFinishBtn(isActive) {
 
 /* Abrir o menu usuário, deslogar TERMINAR */
 
-/* Filtro de pesquisa TERMINAR */
+/* Filtro de pesquisa  */
 function filterConversations() {
   const input = document.getElementById('searchInput');
-  if (!input) return;
-  const term = input.value.toLowerCase();
-  document.querySelectorAll('.conv-card').forEach(card => {
-    const title = card.querySelector('.conv-name-input')?.value?.toLowerCase() || '';
-    card.style.display = title.includes(term) ? 'flex' : 'none';
+  if (!input || !state.activeConvId) return;
+
+  const termo = input.value.toLowerCase();
+
+  const itensFiltrados = activeQuoteItems().filter(item =>
+    item.title.toLowerCase().includes(termo) ||
+    item.papel.toLowerCase().includes(termo) ||
+    item.envelope.toLowerCase().includes(termo)
+  );
+
+  renderQuotePanelFiltrado(itensFiltrados);
+}
+
+/* filtrar qualquer coisa da pesquisa */
+function renderQuotePanelFiltrado(items) {
+  const panel = document.getElementById('quoteItems');
+
+  if (!items.length) {
+    panel.innerHTML = `
+      <div style="text-align:center; color:var(--gray-400); font-size:12px; margin-top:24px;">
+        Nenhum item encontrado.
+      </div>`;
+    return;
+  }
+
+  panel.innerHTML = '';
+
+  items.forEach(item => {
+
+    const card = document.createElement('div');
+    card.className = 'quote-card';
+
+    card.innerHTML = `
+      <div class="quote-card-header">
+        <span class="quote-tag">Convites</span>
+      </div>
+
+      <div class="quote-card-body">
+        <div class="quote-title">${item.title}</div>
+        <div class="quote-detail">Papel: ${item.papel}</div>
+        <div class="quote-detail">Envelope: ${item.envelope}</div>
+        <div class="quote-detail">Quantidade: ${item.qty}</div>
+        <div class="quote-detail">Custo: R$ ${item.custo}</div>
+      </div>
+    `;
+
+    panel.appendChild(card);
   });
 }
+function filterConversations() {
+  const input = document.getElementById('searchInput');
+
+  if (!input || !state.activeConvId) return;
+
+  const termo = input.value.toLowerCase().trim();
+
+  if (termo === '') {
+    renderQuotePanel();
+    return;
+  }
+
+  const itensFiltrados = activeQuoteItems().filter(item =>
+    item.title.toLowerCase().includes(termo) ||
+    item.papel.toLowerCase().includes(termo) ||
+    item.envelope.toLowerCase().includes(termo)
+  );
+
+  renderQuotePanelFiltrado(itensFiltrados);
+}
+
+
 
 /* ════════════════════════════════════════════════
    RENDERIZAÇÃO — LISTA DE CONVERSAS
@@ -639,7 +700,7 @@ const BOT_RESPONSES = {
       : 'Seu orçamento está vazio. Use "pedido novo" para adicionar itens.',
 
   'produtos': async () => {
-  const res = await fetch(`${BASE_URL}/produtos`);
+  const res = await fetch(`${BASE_URL}/api/insumos`);
   const produtos = await res.json();
 
   if (!produtos.length) {
@@ -651,8 +712,8 @@ const BOT_RESPONSES = {
   produtos.forEach(p => {
     texto +=
       `• ${p.nome}\n` +
-      `  Preço base: R$ ${p.precoBase}\n` +
-      `  Status: ${p.ativo ? 'Ativo' : 'Inativo'}\n\n`;
+      `  Estoque: ${p.qtd}\n` +
+      `  Valor: R$ ${p.valor}\n\n`;
   });
 
   return texto;
